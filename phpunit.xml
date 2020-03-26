@@ -7,6 +7,9 @@
         <testsuite name="response">
             <directory>tests/Formatter/Response</directory>
         </testsuite>
+        <testsuite name="exception">
+            <directory>tests/Formatter/Exception</directory>
+        </testsuite>
     </testsuites>
     <filter>
         <whitelist>
