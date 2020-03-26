@@ -4,8 +4,9 @@ require '../vendor/autoload.php';
 
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
-use Loguz\Formatter\RequestCurlFormatter;
-use Loguz\Middleware\LogMiddleware;
+use GuzzleHttp\Psr7\Request;
+use Loguzz\Formatter\RequestCurlFormatter;
+use Loguzz\Middleware\LogMiddleware;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
 use Namshi\Cuzzle\Middleware\CurlArrayFormatterMiddleware;
@@ -16,12 +17,12 @@ $testHandler = new TestHandler();
 $logger->pushHandler($testHandler);
 
 $options = [
-    'length'        => 200,
+    'length'            => 200,
     // 'log_request'   => true,
-    'log_request'   => false,
-    'log_response'  => true,
+    'log_request'       => false,
+    'log_response'      => true,
     // 'log_response'  => false,
-    'log_level'     => 'notice',
+    'log_level'         => 'notice',
     'request_formatter' => new RequestCurlFormatter,
 ];
 
@@ -42,3 +43,6 @@ try {
 }
 
 var_dump($testHandler->getRecords()); //check the cURL request in the logs :)
+/*var_dump((new RequestCurlFormatter())->format(new Request('GET', 'http://httpbin.org/get', [
+    'agent' => 'curl',
+], 'param1=param1&param2=param2')));*/
