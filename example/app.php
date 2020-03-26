@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
 use Loguzz\Formatter\RequestCurlFormatter;
+use Loguzz\Formatter\ResponseArrayFormatter;
 use Loguzz\Middleware\LogMiddleware;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
@@ -37,12 +38,16 @@ $client = new Client([ 'handler' => $handlerStack, 'http_errors' => false ]); //
 //$response = $client->post('http://httpbin.org/put');
 //$response = $client->post('https://127.0.0.1:8012');
 //$response = $client->post('http://google.com');
-try {
-    $response = $client->put('https://httpbin.org/post', [ 'form_params' => [ 'a' => 'a', 'b' => 'b', ] ]);
-} catch ( Exception $e ) {
-}
-
-var_dump($testHandler->getRecords()); //check the cURL request in the logs :)
+//try {
+//    $response = $client->put('https://httpbin.org/post', [ 'form_params' => [ 'a' => 'a', 'b' => 'b', ] ]);
+//} catch ( Exception $e ) {
+//}
+//
+//var_dump($testHandler->getRecords()); //check the cURL request in the logs :)
 /*var_dump((new RequestCurlFormatter())->format(new Request('GET', 'http://httpbin.org/get', [
     'agent' => 'curl',
 ], 'param1=param1&param2=param2')));*/
+
+/*var_dump((new ResponseArrayFormatter())->format($client->send(new Request('GET', 'http://httpbin.org/get', [
+    'agent' => 'curl',
+], 'param1=param1&param2=param2'))));*/
