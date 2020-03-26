@@ -43,8 +43,8 @@ class LogMiddleware
 
     private function getRequestFormatter () : AbstractRequestFormatter {
         $formatter = null;
-        if (isset($this->options['log_formatter'])) {
-            $formatter = $this->options['log_formatter'];
+        if (isset($this->options['request_formatter'])) {
+            $formatter = $this->options['request_formatter'];
         }
 
         return $formatter instanceof AbstractRequestFormatter ? $formatter : $this->getDefaultRequestFormatter();
@@ -60,8 +60,8 @@ class LogMiddleware
 
     private function getResponseFormatter () : AbstractResponseFormatter {
         $formatter = null;
-        if (isset($this->options['log_formatter'])) {
-            $formatter = $this->options['log_formatter'];
+        if (isset($this->options['response_formatter'])) {
+            $formatter = $this->options['response_formatter'];
         }
 
         return $formatter instanceof AbstractResponseFormatter ? $formatter : $this->getDefaultResponseFormatter();

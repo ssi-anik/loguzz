@@ -22,8 +22,7 @@ $options = [
     'log_response'  => true,
     // 'log_response'  => false,
     'log_level'     => 'notice',
-    'log_formatter' => new RequestCurlFormatter,
-    // 'log_formatter' => new CurlJsonRequestFormatter,
+    'request_formatter' => new RequestCurlFormatter,
 ];
 
 $handlerStack = HandlerStack::create();
