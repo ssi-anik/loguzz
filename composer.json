@@ -1,6 +1,6 @@
 {
-    "name": "anik/loguz",
-    "description": "Loguz is a guzzlehttp/guzzle request & response logger",
+    "name": "anik/loguzz",
+    "description": "Loguzz is a guzzlehttp/guzzle request & response logger",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -20,7 +20,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Loguz\\": "src/"
+            "Loguzz\\": "src/"
         }
     },
     "minimum-stability": "dev"

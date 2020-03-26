@@ -2,7 +2,7 @@
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
-use Loguz\Formatter\ExceptionArrayFormatter;
+use Loguzz\Formatter\ExceptionArrayFormatter;
 use PHPUnit\Framework\TestCase;
 
 class ResponseExceptionFormatterTest extends TestCase

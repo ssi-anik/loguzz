@@ -1,14 +1,14 @@
 <?php
 
-namespace Loguz\Middleware;
+namespace Loguzz\Middleware;
 
 use Exception;
-use Loguz\Formatter\AbstractExceptionFormatter;
-use Loguz\Formatter\AbstractRequestFormatter;
-use Loguz\Formatter\AbstractResponseFormatter;
-use Loguz\Formatter\RequestCurlFormatter;
-use Loguz\Formatter\ExceptionJsonFormatter;
-use Loguz\Formatter\ResponseJsonFormatter;
+use Loguzz\Formatter\AbstractExceptionFormatter;
+use Loguzz\Formatter\AbstractRequestFormatter;
+use Loguzz\Formatter\AbstractResponseFormatter;
+use Loguzz\Formatter\RequestCurlFormatter;
+use Loguzz\Formatter\ExceptionJsonFormatter;
+use Loguzz\Formatter\ResponseJsonFormatter;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;

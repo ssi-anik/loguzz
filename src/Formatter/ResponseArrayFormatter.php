@@ -1,6 +1,6 @@
 <?php
 
-namespace Loguz\Formatter;
+namespace Loguzz\Formatter;
 
 use Psr\Http\Message\ResponseInterface;
 

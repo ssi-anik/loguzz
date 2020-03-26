@@ -3,9 +3,9 @@
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
-use Loguz\Formatter\RequestCurlFormatter;
-use Loguz\Formatter\ResponseJsonFormatter;
-use Loguz\Middleware\LogMiddleware;
+use Loguzz\Formatter\RequestCurlFormatter;
+use Loguzz\Formatter\ResponseJsonFormatter;
+use Loguzz\Middleware\LogMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;

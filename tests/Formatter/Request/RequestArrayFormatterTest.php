@@ -1,8 +1,8 @@
 <?php
 
 use GuzzleHttp\Psr7\Request;
-use Loguz\Formatter\AbstractRequestFormatter;
-use Loguz\Formatter\RequestArrayFormatter;
+use Loguzz\Formatter\AbstractRequestFormatter;
+use Loguzz\Formatter\RequestArrayFormatter;
 use PHPUnit\Framework\TestCase;
 use function GuzzleHttp\Psr7\stream_for;
 
