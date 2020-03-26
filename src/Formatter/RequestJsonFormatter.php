@@ -4,7 +4,7 @@ namespace Loguz\Formatter;
 
 use Psr\Http\Message\RequestInterface;
 
-class CurlJsonRequestFormatter extends AbstractRequestFormatter
+class RequestJsonFormatter extends AbstractRequestFormatter
 {
     /**
      * @param RequestInterface $request

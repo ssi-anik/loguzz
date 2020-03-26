@@ -4,7 +4,7 @@ namespace Loguz\Formatter;
 
 use Psr\Http\Message\RequestInterface;
 
-class CurlCommandRequestFormatter extends AbstractRequestFormatter
+class RequestCurlFormatter extends AbstractRequestFormatter
 {
     /**
      * @var string

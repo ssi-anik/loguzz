@@ -6,7 +6,7 @@ use Exception;
 use Loguz\Formatter\AbstractExceptionFormatter;
 use Loguz\Formatter\AbstractRequestFormatter;
 use Loguz\Formatter\AbstractResponseFormatter;
-use Loguz\Formatter\CurlCommandRequestFormatter;
+use Loguz\Formatter\RequestCurlFormatter;
 use Loguz\Formatter\ExceptionJsonFormatter;
 use Loguz\Formatter\ResponseJsonFormatter;
 use Psr\Http\Message\RequestInterface;
@@ -38,7 +38,7 @@ class LogMiddleware
     private function getDefaultRequestFormatter () : AbstractRequestFormatter {
         $length = isset($this->options['length']) ? $this->options['length'] : 100;
 
-        return new CurlCommandRequestFormatter($length);
+        return new RequestCurlFormatter($length);
     }
 
     private function getRequestFormatter () : AbstractRequestFormatter {

@@ -2,7 +2,7 @@
 
 use GuzzleHttp\Psr7\Request;
 use Loguz\Formatter\AbstractRequestFormatter;
-use Loguz\Formatter\CurlCommandRequestFormatter;
+use Loguz\Formatter\RequestCurlFormatter;
 use PHPUnit\Framework\TestCase;
 use function GuzzleHttp\Psr7\stream_for;
 
@@ -14,7 +14,7 @@ class CurlCommandRequestFormatterTest extends TestCase
     protected $formatter;
 
     public function setUp () : void {
-        $this->formatter = new CurlCommandRequestFormatter();
+        $this->formatter = new RequestCurlFormatter();
     }
 
     public function testMultiLineDisabled () {

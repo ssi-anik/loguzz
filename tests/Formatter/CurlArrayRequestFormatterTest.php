@@ -2,7 +2,7 @@
 
 use GuzzleHttp\Psr7\Request;
 use Loguz\Formatter\AbstractRequestFormatter;
-use Loguz\Formatter\CurlArrayRequestFormatter;
+use Loguz\Formatter\RequestArrayFormatter;
 use PHPUnit\Framework\TestCase;
 use function GuzzleHttp\Psr7\stream_for;
 
@@ -14,7 +14,7 @@ class CurlArrayRequestFormatterTest extends TestCase
     protected $formatter;
 
     public function setUp () : void {
-        $this->formatter = new CurlArrayRequestFormatter();
+        $this->formatter = new RequestArrayFormatter();
     }
 
     public function testUserAgent () {

@@ -4,7 +4,7 @@ require '../vendor/autoload.php';
 
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
-use Loguz\Formatter\CurlCommandRequestFormatter;
+use Loguz\Formatter\RequestCurlFormatter;
 use Loguz\Middleware\LogMiddleware;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
@@ -22,7 +22,7 @@ $options = [
     'log_response'  => true,
     // 'log_response'  => false,
     'log_level'     => 'notice',
-    'log_formatter' => new CurlCommandRequestFormatter,
+    'log_formatter' => new RequestCurlFormatter,
     // 'log_formatter' => new CurlJsonRequestFormatter,
 ];
 
