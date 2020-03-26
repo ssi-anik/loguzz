@@ -6,7 +6,7 @@ use Loguz\Formatter\RequestArrayFormatter;
 use PHPUnit\Framework\TestCase;
 use function GuzzleHttp\Psr7\stream_for;
 
-class CurlArrayRequestFormatterTest extends TestCase
+class RequestArrayFormatterTest extends TestCase
 {
     /**
      * @var AbstractRequestFormatter
