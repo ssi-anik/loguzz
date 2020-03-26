@@ -3,11 +3,11 @@
 namespace Loguz\Middleware;
 
 use Exception;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException;
+use Loguz\Formatter\AbstractExceptionFormatter;
 use Loguz\Formatter\AbstractRequestFormatter;
 use Loguz\Formatter\AbstractResponseFormatter;
 use Loguz\Formatter\CurlCommandRequestFormatter;
+use Loguz\Formatter\ExceptionJsonFormatter;
 use Loguz\Formatter\ResponseJsonFormatter;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -67,6 +67,14 @@ class LogMiddleware
         return $formatter instanceof AbstractResponseFormatter ? $formatter : $this->getDefaultResponseFormatter();
     }
 
+    private function getDefaultExceptionFormatter () {
+        return new ExceptionJsonFormatter();
+    }
+
+    private function getExceptionFormatter () : AbstractExceptionFormatter {
+        return $this->getDefaultExceptionFormatter();
+    }
+
     private function getLogLevel () {
         return isset($this->options['log_level']) ? $this->options['log_level'] : 'info';
     }
@@ -116,8 +124,7 @@ class LogMiddleware
     private function handleFailure (RequestInterface $request, array $options) : callable {
         return function (Exception $reason) use ($request, $options) {
             if (!$this->logSuccessOnly()) {
-//                var_dump($reason instanceof RequestException);
-                /*$this->logger->{$this->getLogLevel()}($this->getResponseFormatter()->format($reason));*/
+                $this->logger->{$this->getLogLevel()}($this->getExceptionFormatter()->format($reason));
             }
 
             return rejection_for($reason);

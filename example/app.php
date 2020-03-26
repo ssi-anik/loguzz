@@ -5,7 +5,6 @@ require '../vendor/autoload.php';
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use Loguz\Formatter\CurlCommandRequestFormatter;
-use Loguz\Formatter\CurlJsonRequestFormatter;
 use Loguz\Middleware\LogMiddleware;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
@@ -17,25 +16,30 @@ $testHandler = new TestHandler();
 $logger->pushHandler($testHandler);
 
 $options = [
-    'log_request'   => true,
-    //    'log_request' => false,
-    'log_formatter' => new CurlCommandRequestFormatter,
-    //        'log_formatter' => new CurlJsonRequestFormatter,
+    'length'        => 200,
+    // 'log_request'   => true,
+    'log_request'   => false,
+    'log_response'  => true,
+    // 'log_response'  => false,
     'log_level'     => 'notice',
+    'log_formatter' => new CurlCommandRequestFormatter,
+    // 'log_formatter' => new CurlJsonRequestFormatter,
 ];
 
 $handlerStack = HandlerStack::create();
 $handlerStack->push(new LogMiddleware($logger, $options), 'logger');
 //$handlerStack->push(new LogMiddleware($logger, $options), 'logger');
 //$handlerStack->before('prepare_body', new LogMiddleware($logger, $options), 'logger');
-$client = new Client([ 'handler' => $handlerStack ]); //initialize a Guzzle client
+//$client = new Client([ 'handler' => $handlerStack , 'http_errors' => false]); //initialize a Guzzle client
+$client = new Client([ 'handler' => $handlerStack, 'http_errors' => false ]); //initialize a Guzzle client
 
-$response = $client->get('http://httpbin.org'); //let's fire a request
-/*$response = $client->post('http://httpbin.org/post', [
-	'form_params' => [
-		'a' => 'a',
-		'b' => 'b',
-	]
-]); //let's fire a request*/
+//$response = $client->get('http://httpbin.org');
+//$response = $client->post('http://httpbin.org/put');
+//$response = $client->post('https://127.0.0.1:8012');
+//$response = $client->post('http://google.com');
+try {
+    $response = $client->put('https://httpbin.org/post', [ 'form_params' => [ 'a' => 'a', 'b' => 'b', ] ]);
+} catch ( Exception $e ) {
+}
 
 var_dump($testHandler->getRecords()); //check the cURL request in the logs :)
