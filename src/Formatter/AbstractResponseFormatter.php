@@ -34,7 +34,7 @@ abstract class AbstractResponseFormatter
     private function extractBody (ResponseInterface $response) {
         $body = $response->getBody();
         if (!$body->isReadable()) {
-            $this->options['data'] = '';
+            $this->options['body'] = '';
 
             return;
         }
@@ -51,7 +51,7 @@ abstract class AbstractResponseFormatter
         }
 
         if ($contents) {
-            $this->options['data'] = $contents;
+            $this->options['body'] = $contents;
         }
     }
 
