@@ -17,96 +17,136 @@ class RequestCurlFormatterTest extends TestCase
         $this->formatter = new RequestCurlFormatter();
     }
 
+    private function getRequest ($params = []) {
+        $url = 'http://example.local';
+        if (isset($params['url'])) {
+            $url = $params['url'];
+        }
+
+        $headers = [];
+        if (isset($params['headers'])) {
+            $headers = $params['headers'];
+
+            unset($params['headers']);
+        }
+
+        $queries = '';
+        if (isset($params['query'])) {
+            $queries = $params['query'];
+            unset($params);
+        }
+
+        return new Request('GET', $url, $headers, $queries);
+    }
+
+    private function postRequest ($params = []) {
+        $url = '';
+        if (isset($params['url'])) {
+            $url = $params['url'];
+        }
+
+        $headers = [];
+        if (isset($params['headers'])) {
+            $headers = $params['headers'];
+            unset($params['headers']);
+        }
+
+        $body = '';
+        if (isset($params['body'])) {
+            $body = $params['body'];
+            unset($params);
+        }
+
+        return new Request('POST', $url, $headers, $body);
+    }
+
     public function testMultiLineDisabled () {
         $this->formatter->setCommandLineLength(10);
 
-        $request = new Request('GET', 'http://example.local', [ 'foo' => 'bar' ]);
-        $curl = $this->formatter->format($request);
+        $curl = $this->formatter->format($this->getRequest([ 'headers' => [ 'foo' => 'bar' ] ]));
 
         $this->assertEquals(substr_count($curl, "\n"), 2);
     }
 
     public function testSkipHostInHeaders () {
-        $request = new Request('GET', 'http://example.local');
-        $curl = $this->formatter->format($request);
+        $curl = $this->formatter->format($this->getRequest());
 
         $this->assertEquals("curl 'http://example.local'", $curl);
     }
 
-    public function testSimpleGET () {
-        $request = new Request('GET', 'http://example.local');
-        $curl = $this->formatter->format($request);
+    public function testSimpleGet () {
+        $curl = $this->formatter->format($this->getRequest());
 
         $this->assertEquals("curl 'http://example.local'", $curl);
     }
 
-    public function testSimpleGETWithHeader () {
-        $request = new Request('GET', 'http://example.local', [ 'foo' => 'bar' ]);
-        $curl = $this->formatter->format($request);
+    public function testSimpleGetWithHeader () {
+        $curl = $this->formatter->format($this->getRequest([ 'headers' => [ 'foo' => 'bar' ] ]));
 
         $this->assertEquals("curl 'http://example.local' -H 'foo: bar'", $curl);
     }
 
-    public function testSimpleGETWithMultipleHeader () {
-        $request = new Request('GET', 'http://example.local',
-            [ 'foo' => 'bar', 'Accept-Encoding' => 'gzip,deflate,sdch' ]);
-        $curl = $this->formatter->format($request);
+    public function testSimpleGetWithMultipleHeaders () {
+        $curl = $this->formatter->format($this->getRequest([
+            'headers' => [
+                'foo'             => 'bar',
+                'Accept-Encoding' => 'gzip,deflate,sdch',
+            ],
+        ]));
 
         $this->assertEquals("curl 'http://example.local' -H 'foo: bar' -H 'Accept-Encoding: gzip,deflate,sdch'", $curl);
     }
 
-    public function testGETWithQueryString () {
-        $request = new Request('GET', 'http://example.local?foo=bar');
-        $curl = $this->formatter->format($request);
-
-        $this->assertEquals("curl 'http://example.local?foo=bar'", $curl);
-
-        $request = new Request('GET', 'http://example.local?foo=bar');
-        $curl = $this->formatter->format($request);
+    public function testGetWithQueryString () {
+        $curl = $this->formatter->format($this->getRequest([
+            'url' => 'http://example.local?foo=bar',
+        ]));
 
         $this->assertEquals("curl 'http://example.local?foo=bar'", $curl);
 
         $body = stream_for(http_build_query([ 'foo' => 'bar', 'hello' => 'world' ], '', '&'));
 
-        $request = new Request('GET', 'http://example.local', [], $body);
-        $curl = $this->formatter->format($request);
+        $curl = $this->formatter->format($this->getRequest([
+            'query' => $body,
+        ]));
 
         $this->assertEquals("curl 'http://example.local' -G  -d 'foo=bar&hello=world'", $curl);
 
     }
 
-    public function testPOST () {
+    public function testPostRequest () {
         $body = stream_for(http_build_query([ 'foo' => 'bar', 'hello' => 'world' ], '', '&'));
 
-        $request = new Request('POST', 'http://example.local', [], $body);
-        $curl = $this->formatter->format($request);
+        $curl = $this->formatter->format($this->postRequest([
+            'body' => $body,
+        ]));
 
         $this->assertStringContainsString("-d 'foo=bar&hello=world'", $curl);
         $this->assertStringNotContainsString(" -G ", $curl);
     }
 
-    public function testHEAD () {
+    public function testHeadRequest () {
         $request = new Request('HEAD', 'http://example.local');
         $curl = $this->formatter->format($request);
 
         $this->assertStringContainsString("--head", $curl);
     }
 
-    public function testOPTIONS () {
+    public function testOptionsRequest () {
         $request = new Request('OPTIONS', 'http://example.local');
         $curl = $this->formatter->format($request);
 
         $this->assertStringContainsString("-X OPTIONS", $curl);
     }
 
-    public function testDELETE () {
+    public function testDeleteRequest () {
         $request = new Request('DELETE', 'http://example.local/users/4');
         $curl = $this->formatter->format($request);
 
         $this->assertStringContainsString("-X DELETE", $curl);
     }
 
-    public function testPUT () {
+    public function testPutRequest () {
         $request = new Request('PUT', 'http://example.local', [], stream_for('foo=bar&hello=world'));
         $curl = $this->formatter->format($request);
 
@@ -115,12 +155,14 @@ class RequestCurlFormatterTest extends TestCase
     }
 
     public function testUserAgent () {
-        $request = new Request('GET', 'http://example.local', [
-            'user-agent' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
-        ]);
-        $curl = $this->formatter->format($request);
+        $curl = $this->formatter->format($this->getRequest([
+            'headers' => [
+                'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) Chrome/80.0.3987.149 Safari/537.36',
+            ],
+        ]));
 
-        $this->assertStringContainsString("-A 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'", $curl);
+        $this->assertStringContainsString("-A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) Chrome/80.0.3987.149 Safari/537.36'",
+            $curl);
     }
 
     public function testProperBodyReading () {
@@ -133,10 +175,10 @@ class RequestCurlFormatterTest extends TestCase
         $this->assertStringContainsString("-X PUT", $curl);
     }
 
-    /**
-     * @dataProvider getHeadersAndBodyData
-     */
-    public function testExtractBodyArgument ($headers, $body) {
+    public function testExtractBodyArgument () {
+        $headers = [ 'X-Foo' => 'Bar' ];
+        $body = chr(0) . 'foo=bar&hello=world';
+
         // clean input of null bytes
         $body = str_replace(chr(0), '', $body);
         $request = new Request('POST', 'http://example.local', $headers, stream_for($body));
@@ -144,19 +186,5 @@ class RequestCurlFormatterTest extends TestCase
         $curl = $this->formatter->format($request);
 
         $this->assertStringContainsString('foo=bar&hello=world', $curl);
-    }
-
-    /**
-     * The data provider for testExtractBodyArgument
-     *
-     * @return array
-     */
-    public function getHeadersAndBodyData () {
-        return [
-            [
-                [ 'X-Foo' => 'Bar' ],
-                chr(0) . 'foo=bar&hello=world',
-            ],
-        ];
     }
 }
