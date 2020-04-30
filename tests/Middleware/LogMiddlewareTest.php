@@ -79,6 +79,34 @@ class LogMiddlewareTest extends TestCase
         $this->assertCount(2, $this->logger->records);
     }
 
+    public function testTagsInLogs () {
+        $client = $this->getClient([ 'tag' => 'custom.tag' ]);
+
+        $client->send($this->getRequest());
+        $this->assertStringContainsString('{"custom.tag":', $this->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag":', $this->logger->records[1]['message']);
+    }
+
+    public function testTagsJsonIsFalse () {
+        $client = $this->getClient([ 'tag' => 'custom.tag', 'force_json' => false ]);
+
+        $client->send($this->getRequest());
+        $this->assertIsArray($this->logger->records[0]['message']);
+        $this->assertIsArray($this->logger->records[1]['message']);
+        $this->assertArrayHasKey('custom.tag', $this->logger->records[0]['message']);
+        $this->assertArrayHasKey('custom.tag', $this->logger->records[1]['message']);
+    }
+
+    public function testTagsJsonIsTrue () {
+        $client = $this->getClient([ 'tag' => 'custom.tag', 'force_json' => 'casted to true value' ]);
+
+        $client->send($this->getRequest());
+        $this->assertIsString($this->logger->records[0]['message']);
+        $this->assertIsString($this->logger->records[1]['message']);
+        $this->assertStringContainsString('{"custom.tag":', $this->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag":', $this->logger->records[1]['message']);
+    }
+
     public function testRequestFormatter () {
         $client = $this->getClient([
             'log_response'      => false,

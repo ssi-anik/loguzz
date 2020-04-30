@@ -6,8 +6,8 @@ use Exception;
 use Loguzz\Formatter\AbstractExceptionFormatter;
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\AbstractResponseFormatter;
-use Loguzz\Formatter\RequestCurlFormatter;
 use Loguzz\Formatter\ExceptionJsonFormatter;
+use Loguzz\Formatter\RequestCurlFormatter;
 use Loguzz\Formatter\ResponseJsonFormatter;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -79,10 +79,26 @@ class LogMiddleware
         return isset($this->options['log_level']) ? $this->options['log_level'] : 'info';
     }
 
+    private function getLogTag () : string {
+        return isset($this->options['tag']) ? $this->options['tag'] : '';
+    }
+
+    private function forceToJson () : bool {
+        return isset($this->options['force_json']) ? (bool) $this->options['force_json'] : true;
+    }
+
+    private function formatWithTag ($loggable) {
+        if ($tag = $this->getLogTag()) {
+            return $this->forceToJson() ? json_encode([ $tag => $loggable ]) : [ $tag => $loggable ];
+        }
+
+        return $loggable;
+    }
+
     public function __invoke (callable $handler) {
         return function (RequestInterface $request, array $options) use ($handler) {
             if ($this->logRequest()) {
-                $output = $this->getRequestFormatter()->format($request, $options);
+                $output = $this->formatWithTag($this->getRequestFormatter()->format($request, $options));
                 $this->logger->{$this->getLogLevel()}($output);
             }
 
@@ -106,7 +122,8 @@ class LogMiddleware
     private function handleSuccess (RequestInterface $request, array $options) : callable {
         return function (ResponseInterface $response) use ($request, $options) {
             if (!$this->logExceptionOnly()) {
-                $this->logger->{$this->getLogLevel()}($this->getResponseFormatter()->format($response));
+                $output = $this->formatWithTag($this->getResponseFormatter()->format($response));
+                $this->logger->{$this->getLogLevel()}($output);
             }
 
             return $response;
@@ -124,7 +141,8 @@ class LogMiddleware
     private function handleFailure (RequestInterface $request, array $options) : callable {
         return function (Exception $reason) use ($request, $options) {
             if (!$this->logSuccessOnly()) {
-                $this->logger->{$this->getLogLevel()}($this->getExceptionFormatter()->format($reason));
+                $output = $this->formatWithTag($this->getExceptionFormatter()->format($reason));
+                $this->logger->{$this->getLogLevel()}($output);
             }
 
             return rejection_for($reason);

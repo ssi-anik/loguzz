@@ -19,11 +19,13 @@ $logger->pushHandler($testHandler);
 
 $options = [
     'length'            => 200,
-    // 'log_request'   => true,
-    'log_request'       => false,
-    'log_response'      => true,
-    // 'log_response'  => false,
+    'log_request'       => true,
+    // 'log_request'       => false,
+    // 'log_response'      => true,
+    'log_response'      => false,
     'log_level'         => 'notice',
+    'tag'               => 'this.is.tag',
+    'force_json'        => true,
     'request_formatter' => new RequestCurlFormatter,
 ];
 
