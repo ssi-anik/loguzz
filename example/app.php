@@ -27,6 +27,7 @@ $options = [
     'tag'               => 'this.is.tag',
     'force_json'        => true,
     'request_formatter' => new RequestCurlFormatter,
+    'separate'          => true,
 ];
 
 $handlerStack = HandlerStack::create();

@@ -87,8 +87,15 @@ class LogMiddleware
         return isset($this->options['force_json']) ? (bool) $this->options['force_json'] : true;
     }
 
-    private function formatWithTag ($loggable) {
+    private function shouldSeparate () : bool {
+        return isset($this->options['separate']) ? (bool) $this->options['separate'] : false;
+    }
+
+    private function formatWithTag ($loggable, $type) {
         if ($tag = $this->getLogTag()) {
+            if ($this->shouldSeparate()) {
+                $tag = $tag . '.' . $type;
+            }
             return $this->forceToJson() ? json_encode([ $tag => $loggable ]) : [ $tag => $loggable ];
         }
 
@@ -98,7 +105,7 @@ class LogMiddleware
     public function __invoke (callable $handler) {
         return function (RequestInterface $request, array $options) use ($handler) {
             if ($this->logRequest()) {
-                $output = $this->formatWithTag($this->getRequestFormatter()->format($request, $options));
+                $output = $this->formatWithTag($this->getRequestFormatter()->format($request, $options), 'request');
                 $this->logger->{$this->getLogLevel()}($output);
             }
 
@@ -122,7 +129,7 @@ class LogMiddleware
     private function handleSuccess (RequestInterface $request, array $options) : callable {
         return function (ResponseInterface $response) use ($request, $options) {
             if (!$this->logExceptionOnly()) {
-                $output = $this->formatWithTag($this->getResponseFormatter()->format($response));
+                $output = $this->formatWithTag($this->getResponseFormatter()->format($response), 'success');
                 $this->logger->{$this->getLogLevel()}($output);
             }
 
@@ -141,7 +148,7 @@ class LogMiddleware
     private function handleFailure (RequestInterface $request, array $options) : callable {
         return function (Exception $reason) use ($request, $options) {
             if (!$this->logSuccessOnly()) {
-                $output = $this->formatWithTag($this->getExceptionFormatter()->format($reason));
+                $output = $this->formatWithTag($this->getExceptionFormatter()->format($reason), 'failure');
                 $this->logger->{$this->getLogLevel()}($output);
             }
 

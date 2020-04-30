@@ -87,6 +87,29 @@ class LogMiddlewareTest extends TestCase
         $this->assertStringContainsString('{"custom.tag":', $this->logger->records[1]['message']);
     }
 
+    public function testTagsSeparator () {
+        $client = $this->getClient([ 'tag' => 'custom.tag', 'separate' => true, ]);
+
+        $client->send($this->getRequest());
+        $this->assertStringContainsString('{"custom.tag.request":', $this->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag.success":', $this->logger->records[1]['message']);
+    }
+
+    public function testTagsSeparatorOnFailure () {
+        $client = $this->getClient([
+            'tag'      => 'custom.tag',
+            'separate' => true,
+            'uri'      => 'https://not.a.valid.url.here',
+        ]);
+
+        try {
+            $client->send($this->getRequest());
+        } catch ( Exception $e ) {
+        }
+        $this->assertStringContainsString('{"custom.tag.request":', $this->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag.failure":', $this->logger->records[1]['message']);
+    }
+
     public function testTagsJsonIsFalse () {
         $client = $this->getClient([ 'tag' => 'custom.tag', 'force_json' => false ]);
 
