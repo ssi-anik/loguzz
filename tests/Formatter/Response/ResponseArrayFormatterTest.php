@@ -28,7 +28,7 @@ class ResponseArrayFormatterTest extends TestCase
     {
         $request = new Request('GET', '/get');
         $response = $this->client->send($request);
-        $format = $this->formatter->format($response);
+        $format = $this->formatter->format($request, $response);
 
         $this->assertArrayHasKey("protocol", $format);
         $this->assertArrayHasKey("reason_phrase", $format);

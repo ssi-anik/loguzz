@@ -2,13 +2,14 @@
 
 namespace Loguzz\Formatter;
 
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 abstract class AbstractResponseFormatter
 {
     protected $options = [];
 
-    protected function extractArguments(ResponseInterface $response, array $options): void
+    protected function extractArguments(RequestInterface $request, ResponseInterface $response, array $options): void
     {
         $this->extractProtocol($response);
         $this->extractReasonPhrase($response);
@@ -68,5 +69,5 @@ abstract class AbstractResponseFormatter
         $this->options['headers'] = $response->getHeaders();
     }
 
-    abstract public function format(ResponseInterface $response, array $options = []);
+    abstract public function format(RequestInterface $request, ResponseInterface $response, array $options = []);
 }

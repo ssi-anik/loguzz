@@ -3,12 +3,13 @@
 namespace Loguzz\Formatter;
 
 use Exception;
+use Psr\Http\Message\RequestInterface;
 
 abstract class AbstractExceptionFormatter
 {
     protected $options = [];
 
-    protected function extractArguments(Exception $e, array $options): void
+    protected function extractArguments(RequestInterface $request, Exception $e, array $options): void
     {
         $this->extractExceptionClass($e);
         $this->extractCode($e);
@@ -40,5 +41,5 @@ abstract class AbstractExceptionFormatter
         $this->options['message'] = $e->getMessage();
     }
 
-    abstract public function format(Exception $e, array $options = []);
+    abstract public function format(RequestInterface $request, Exception $e, array $options = []);
 }

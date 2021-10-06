@@ -30,7 +30,7 @@ class ResponseExceptionFormatterTest extends TestCase
         try {
             $this->client->send($request);
         } catch (Exception $e) {
-            $format = $this->formatter->format($e);
+            $format = $this->formatter->format($request, $e);
         }
 
         $this->assertArrayHasKey("context", $format);
