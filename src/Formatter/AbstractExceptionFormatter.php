@@ -3,6 +3,7 @@
 namespace Loguzz\Formatter;
 
 use Exception;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 
 abstract class AbstractExceptionFormatter
@@ -17,15 +18,17 @@ abstract class AbstractExceptionFormatter
         $this->extractExceptionClass($e);
         $this->extractCode($e);
         $this->extractMessage($e);
-        if ($e instanceof RequestException) {
-            $this->extractContext($e);
-        }
+        $this->extractContext($e);
     }
 
     /**
      * @param Exception $e
      */
     private function extractContext (Exception $e) {
+        if (!method_exists($e, 'getHandlerContext')) {
+            return;
+        }
+
         $this->options['context'] = $e->getHandlerContext();
     }
 
