@@ -12,11 +12,7 @@ abstract class AbstractRequestFormatter
      */
     protected $options = [];
 
-    /**
-     * @param RequestInterface $request
-     * @param array $options
-     */
-    protected function extractArguments(RequestInterface $request, array $options)
+    protected function extractArguments(RequestInterface $request, array $options): void
     {
         $this->extractHttpMethodArgument($request);
         $this->extractBodyArgument($request);
@@ -25,18 +21,12 @@ abstract class AbstractRequestFormatter
         $this->extractUrlArgument($request);
     }
 
-    /**
-     * @param RequestInterface $request
-     */
-    private function extractHttpMethodArgument(RequestInterface $request)
+    final protected function extractHttpMethodArgument(RequestInterface $request): void
     {
         $this->options['method'] = $request->getMethod();
     }
 
-    /**
-     * @param RequestInterface $request
-     */
-    private function extractBodyArgument(RequestInterface $request)
+    final protected function extractBodyArgument(RequestInterface $request): void
     {
         $body = $request->getBody();
 
@@ -63,11 +53,7 @@ abstract class AbstractRequestFormatter
         }
     }
 
-    /**
-     * @param RequestInterface $request
-     * @param array $options
-     */
-    private function extractCookiesArgument(RequestInterface $request, array $options)
+    final protected function extractCookiesArgument(RequestInterface $request, array $options): void
     {
         if (!isset($options['cookies']) || !$options['cookies'] instanceof CookieJarInterface) {
             return;
@@ -97,10 +83,7 @@ abstract class AbstractRequestFormatter
         }
     }
 
-    /**
-     * @param RequestInterface $request
-     */
-    private function extractHeadersArgument(RequestInterface $request)
+    final protected function extractHeadersArgument(RequestInterface $request): void
     {
         foreach ($request->getHeaders() as $name => $header) {
             if ('host' === strtolower($name) && $header[0] === $request->getUri()->getHost()) {
@@ -118,19 +101,10 @@ abstract class AbstractRequestFormatter
         }
     }
 
-    /**
-     * @param RequestInterface $request
-     */
-    private function extractUrlArgument(RequestInterface $request)
+    final protected function extractUrlArgument(RequestInterface $request): void
     {
         $this->options['url'] = (string) $request->getUri()->withFragment('');
     }
 
-    /**
-     * @param RequestInterface $request
-     * @param array $options
-     *
-     * @return string | array
-     */
     abstract public function format(RequestInterface $request, array $options = []);
 }

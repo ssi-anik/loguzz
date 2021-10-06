@@ -2,6 +2,7 @@
 
 namespace Loguzz\Middleware;
 
+use Closure;
 use Exception;
 use GuzzleHttp\Promise\Create;
 use Loguzz\Formatter\AbstractExceptionFormatter;
@@ -62,7 +63,7 @@ class LogMiddleware
         return isset($this->options['log_response']) ? (bool) $this->options['log_response'] : true;
     }
 
-    private function getDefaultResponseFormatter()
+    private function getDefaultResponseFormatter(): ResponseJsonFormatter
     {
         return new ResponseJsonFormatter();
     }
@@ -77,7 +78,7 @@ class LogMiddleware
         return $formatter instanceof AbstractResponseFormatter ? $formatter : $this->getDefaultResponseFormatter();
     }
 
-    private function getDefaultExceptionFormatter()
+    private function getDefaultExceptionFormatter(): ExceptionJsonFormatter
     {
         return new ExceptionJsonFormatter();
     }
@@ -87,7 +88,7 @@ class LogMiddleware
         return $this->getDefaultExceptionFormatter();
     }
 
-    private function getLogLevel()
+    private function getLogLevel(): string
     {
         return isset($this->options['log_level']) ? $this->options['log_level'] : 'info';
     }
@@ -120,7 +121,7 @@ class LogMiddleware
         return $loggable;
     }
 
-    public function __invoke(callable $handler)
+    public function __invoke(callable $handler): Closure
     {
         return function (RequestInterface $request, array $options) use ($handler) {
             if ($this->logRequest()) {

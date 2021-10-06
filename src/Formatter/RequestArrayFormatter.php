@@ -6,13 +6,7 @@ use Psr\Http\Message\RequestInterface;
 
 class RequestArrayFormatter extends AbstractRequestFormatter
 {
-    /**
-     * @param RequestInterface $request
-     * @param array $options
-     *
-     * @return array
-     */
-    public function format(RequestInterface $request, array $options = [])
+    public function format(RequestInterface $request, array $options = []): array
     {
         $this->options = [];
 

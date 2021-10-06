@@ -6,7 +6,7 @@ use Exception;
 
 class ExceptionArrayFormatter extends AbstractExceptionFormatter
 {
-    public function format(Exception $e, array $options = [])
+    public function format(Exception $e, array $options = []): array
     {
         $this->extractArguments($e, $options);
 

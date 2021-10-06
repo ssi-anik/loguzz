@@ -26,21 +26,12 @@ class RequestCurlFormatter extends AbstractRequestFormatter
      */
     protected $commandLineLength;
 
-    /**
-     * @param int $commandLineLength
-     */
     public function __construct($commandLineLength = 100)
     {
         $this->commandLineLength = $commandLineLength;
     }
 
-    /**
-     * @param RequestInterface $request
-     * @param array $options
-     *
-     * @return string
-     */
-    public function format(RequestInterface $request, array $options = [])
+    public function format(RequestInterface $request, array $options = []): string
     {
         $this->command = 'curl';
         $this->currentLineLength = strlen($this->command);
@@ -53,19 +44,12 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         return $this->command;
     }
 
-    /**
-     * @param int $commandLineLength
-     */
-    public function setCommandLineLength($commandLineLength)
+    public function setCommandLineLength($commandLineLength): void
     {
         $this->commandLineLength = $commandLineLength;
     }
 
-    /**
-     * @param      $name
-     * @param null $value
-     */
-    protected function addOption($name, $value = null)
+    protected function addOption($name, $value = null): void
     {
         if (isset($this->format[$name])) {
             if (!is_array($this->format[$name])) {
@@ -78,10 +62,7 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         }
     }
 
-    /**
-     * @param $part
-     */
-    protected function addCommandPart($part)
+    protected function addCommandPart($part): void
     {
         $this->command .= ' ';
 
@@ -94,7 +75,7 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         $this->currentLineLength += strlen($part) + 2;
     }
 
-    protected function addOptionsToCommand()
+    protected function addOptionsToCommand(): void
     {
         ksort($this->format);
 
@@ -111,7 +92,7 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         }
     }
 
-    private function serializeOptions()
+    private function serializeOptions(): void
     {
         $this->serializeHttpMethodOption();
         $this->serializeBodyOption();
@@ -120,7 +101,7 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         $this->serializeUrlOption();
     }
 
-    private function serializeHttpMethodOption()
+    private function serializeHttpMethodOption(): void
     {
         if ('GET' !== $this->options['method']) {
             if ('HEAD' === $this->options['method']) {
@@ -131,7 +112,7 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         }
     }
 
-    private function serializeBodyOption()
+    private function serializeBodyOption(): void
     {
         if (isset($this->options['data'])) {
             $this->addOption('d', escapeshellarg($this->options['data']));
@@ -141,14 +122,14 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         }
     }
 
-    private function serializeCookiesOption()
+    private function serializeCookiesOption(): void
     {
         if (isset($this->options['cookies'])) {
             $this->addOption('b', escapeshellarg(implode('; ', $this->options['cookies'])));
         }
     }
 
-    private function serializeHeadersOption()
+    private function serializeHeadersOption(): void
     {
         if (isset($this->options['user-agent'])) {
             $this->addOption('A', escapeshellarg($this->options['user-agent']));
@@ -161,7 +142,7 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         }
     }
 
-    private function serializeUrlOption()
+    private function serializeUrlOption(): void
     {
         $this->addCommandPart(escapeshellarg((string) $this->options['url']));
     }

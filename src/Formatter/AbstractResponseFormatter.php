@@ -8,11 +8,7 @@ abstract class AbstractResponseFormatter
 {
     protected $options = [];
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     * @param array $options
-     */
-    protected function extractArguments(ResponseInterface $response, array $options)
+    protected function extractArguments(ResponseInterface $response, array $options): void
     {
         $this->extractProtocol($response);
         $this->extractReasonPhrase($response);
@@ -22,18 +18,12 @@ abstract class AbstractResponseFormatter
         $this->extractBody($response);
     }
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractBodySize(ResponseInterface $response)
+    final protected function extractBodySize(ResponseInterface $response): void
     {
         $this->options['size'] = $response->getBody()->getSize();
     }
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractBody(ResponseInterface $response)
+    final protected function extractBody(ResponseInterface $response): void
     {
         $body = $response->getBody();
         if (!$body->isReadable()) {
@@ -58,43 +48,25 @@ abstract class AbstractResponseFormatter
         }
     }
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractReasonPhrase(ResponseInterface $response)
+    final protected function extractReasonPhrase(ResponseInterface $response): void
     {
         $this->options['reason_phrase'] = $response->getReasonPhrase();
     }
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractStatusCode(ResponseInterface $response)
+    final protected function extractStatusCode(ResponseInterface $response): void
     {
         $this->options['status_code'] = $response->getStatusCode();
     }
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractProtocol(ResponseInterface $response)
+    final protected function extractProtocol(ResponseInterface $response): void
     {
         $this->options['protocol'] = $response->getProtocolVersion();
     }
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractHeaders(ResponseInterface $response)
+    final protected function extractHeaders(ResponseInterface $response): void
     {
         $this->options['headers'] = $response->getHeaders();
     }
 
-    /**
-     * @param ResponseInterface $response
-     * @param array $options
-     *
-     * @return string | array
-     */
     abstract public function format(ResponseInterface $response, array $options = []);
 }

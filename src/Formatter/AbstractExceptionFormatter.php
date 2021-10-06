@@ -8,11 +8,7 @@ abstract class AbstractExceptionFormatter
 {
     protected $options = [];
 
-    /**
-     * @param Exception $e
-     * @param array $options
-     */
-    protected function extractArguments(Exception $e, array $options)
+    protected function extractArguments(Exception $e, array $options): void
     {
         $this->extractExceptionClass($e);
         $this->extractCode($e);
@@ -20,10 +16,7 @@ abstract class AbstractExceptionFormatter
         $this->extractContext($e);
     }
 
-    /**
-     * @param Exception $e
-     */
-    private function extractContext(Exception $e)
+    final protected function extractContext(Exception $e): void
     {
         if (!method_exists($e, 'getHandlerContext')) {
             return;
@@ -32,35 +25,20 @@ abstract class AbstractExceptionFormatter
         $this->options['context'] = $e->getHandlerContext();
     }
 
-    /**
-     * @param Exception $e
-     */
-    private function extractExceptionClass(Exception $e)
+    final protected function extractExceptionClass(Exception $e): void
     {
         $this->options['class'] = get_class($e);
     }
 
-    /**
-     * @param Exception $e
-     */
-    private function extractCode(Exception $e)
+    final protected function extractCode(Exception $e): void
     {
         $this->options['code'] = $e->getCode();
     }
 
-    /**
-     * @param Exception $e
-     */
-    private function extractMessage(Exception $e)
+    final protected function extractMessage(Exception $e): void
     {
         $this->options['message'] = $e->getMessage();
     }
 
-    /**
-     * @param Exception $e
-     * @param array $options
-     *
-     * @return string | array
-     */
     abstract public function format(Exception $e, array $options = []);
 }
