@@ -151,7 +151,7 @@ class LogMiddleware
     {
         return function (ResponseInterface $response) use ($request, $options) {
             if (!$this->logExceptionOnly()) {
-                $output = $this->formatWithTag($this->getResponseFormatter()->format($response), 'success');
+                $output = $this->formatWithTag($this->getResponseFormatter()->format($response, $options), 'success');
                 $this->logger->{$this->getLogLevel()}($output);
             }
 
@@ -171,7 +171,7 @@ class LogMiddleware
     {
         return function (Exception $reason) use ($request, $options) {
             if (!$this->logSuccessOnly()) {
-                $output = $this->formatWithTag($this->getExceptionFormatter()->format($reason), 'failure');
+                $output = $this->formatWithTag($this->getExceptionFormatter()->format($reason, $options), 'failure');
                 $this->logger->{$this->getLogLevel()}($output);
             }
 

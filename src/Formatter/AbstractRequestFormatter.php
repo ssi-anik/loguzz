@@ -2,6 +2,7 @@
 
 namespace Loguzz\Formatter;
 
+use GuzzleHttp\Cookie\CookieJarInterface;
 use Psr\Http\Message\RequestInterface;
 
 abstract class AbstractRequestFormatter
