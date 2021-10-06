@@ -3,6 +3,7 @@
 namespace Loguzz\Middleware;
 
 use Exception;
+use GuzzleHttp\Promise\Create;
 use Loguzz\Formatter\AbstractExceptionFormatter;
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\AbstractResponseFormatter;
