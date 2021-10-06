@@ -4,7 +4,6 @@ use GuzzleHttp\Psr7\Request;
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestArrayFormatter;
 use PHPUnit\Framework\TestCase;
-use function GuzzleHttp\Psr7\stream_for;
 
 class RequestArrayFormatterTest extends TestCase
 {
@@ -107,7 +106,7 @@ class RequestArrayFormatterTest extends TestCase
         $this->assertArrayHasKey('url', $curl);
         $this->stringContains('foo=bar', $curl['url']);
 
-        $body = stream_for(http_build_query([ 'foo' => 'bar', 'hello' => 'world' ], '', '&'));
+        $body = http_build_query([ 'foo' => 'bar', 'hello' => 'world' ]);
         $curl = $this->formatter->format($this->getRequest([ 'query' => $body ]));
 
         $this->assertEquals('GET', $curl['method']);
@@ -116,7 +115,7 @@ class RequestArrayFormatterTest extends TestCase
     }
 
     public function testPostRequest () {
-        $body = stream_for(http_build_query([ 'foo' => 'bar', 'hello' => 'world' ], '', '&'));
+        $body = http_build_query([ 'foo' => 'bar', 'hello' => 'world' ]);
         $curl = $this->formatter->format($this->postRequest([ 'body' => $body ]));
 
         $this->assertEquals('POST', $curl['method']);
@@ -147,7 +146,7 @@ class RequestArrayFormatterTest extends TestCase
     }
 
     public function testPutRequest () {
-        $request = new Request('PUT', 'http://example.local', [], stream_for('foo=bar&hello=world'));
+        $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
         $curl = $this->formatter->format($request);
 
         $this->assertEquals('PUT', $curl['method']);
@@ -156,7 +155,7 @@ class RequestArrayFormatterTest extends TestCase
     }
 
     public function testProperBodyReading () {
-        $request = new Request('PUT', 'http://example.local', [], stream_for('foo=bar&hello=world'));
+        $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
         $content = $request->getBody()->getContents();
 
         $curl = $this->formatter->format($request);
@@ -171,7 +170,7 @@ class RequestArrayFormatterTest extends TestCase
         $body = chr(0) . 'foo=bar&hello=world';
         // clean input of null bytes
         $body = str_replace(chr(0), '', $body);
-        $request = new Request('POST', 'http://example.local', $headers, stream_for($body));
+        $request = new Request('POST', 'http://example.local', $headers, $body);
         $curl = $this->formatter->format($request);
 
         $this->assertEquals('foo=bar&hello=world', $curl['data']);

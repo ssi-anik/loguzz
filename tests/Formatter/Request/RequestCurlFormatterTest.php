@@ -4,7 +4,6 @@ use GuzzleHttp\Psr7\Request;
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestCurlFormatter;
 use PHPUnit\Framework\TestCase;
-use function GuzzleHttp\Psr7\stream_for;
 
 class RequestCurlFormatterTest extends TestCase
 {
@@ -104,7 +103,7 @@ class RequestCurlFormatterTest extends TestCase
 
         $this->assertEquals("curl 'http://example.local?foo=bar'", $curl);
 
-        $body = stream_for(http_build_query([ 'foo' => 'bar', 'hello' => 'world' ], '', '&'));
+        $body = http_build_query([ 'foo' => 'bar', 'hello' => 'world' ]);
 
         $curl = $this->formatter->format($this->getRequest([
             'query' => $body,
@@ -115,7 +114,7 @@ class RequestCurlFormatterTest extends TestCase
     }
 
     public function testPostRequest () {
-        $body = stream_for(http_build_query([ 'foo' => 'bar', 'hello' => 'world' ], '', '&'));
+        $body = http_build_query([ 'foo' => 'bar', 'hello' => 'world' ]);
 
         $curl = $this->formatter->format($this->postRequest([
             'body' => $body,
@@ -147,7 +146,7 @@ class RequestCurlFormatterTest extends TestCase
     }
 
     public function testPutRequest () {
-        $request = new Request('PUT', 'http://example.local', [], stream_for('foo=bar&hello=world'));
+        $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
         $curl = $this->formatter->format($request);
 
         $this->assertStringContainsString("-d 'foo=bar&hello=world'", $curl);
@@ -166,7 +165,7 @@ class RequestCurlFormatterTest extends TestCase
     }
 
     public function testProperBodyReading () {
-        $request = new Request('PUT', 'http://example.local', [], stream_for('foo=bar&hello=world'));
+        $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
         $request->getBody()->getContents();
 
         $curl = $this->formatter->format($request);
@@ -181,7 +180,7 @@ class RequestCurlFormatterTest extends TestCase
 
         // clean input of null bytes
         $body = str_replace(chr(0), '', $body);
-        $request = new Request('POST', 'http://example.local', $headers, stream_for($body));
+        $request = new Request('POST', 'http://example.local', $headers, $body);
 
         $curl = $this->formatter->format($request);
 
