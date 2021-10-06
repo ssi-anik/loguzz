@@ -9,8 +9,19 @@ abstract class AbstractResponseFormatter
 {
     protected $options = [];
 
+    public function __construct()
+    {
+        $this->initializeOptions();
+    }
+
+    final protected function initializeOptions(array $options = [])
+    {
+        $this->options = empty($options) ? [] : $options;
+    }
+
     protected function extractArguments(RequestInterface $request, ResponseInterface $response, array $options): void
     {
+        $this->initializeOptions();
         $this->extractProtocol($response);
         $this->extractReasonPhrase($response);
         $this->extractStatusCode($response);

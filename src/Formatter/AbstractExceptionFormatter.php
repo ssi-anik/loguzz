@@ -9,8 +9,19 @@ abstract class AbstractExceptionFormatter
 {
     protected $options = [];
 
+    public function __construct()
+    {
+        $this->initializeOptions();
+    }
+
+    final protected function initializeOptions(array $options = [])
+    {
+        $this->options = empty($options) ? [] : $options;
+    }
+
     protected function extractArguments(RequestInterface $request, Exception $e, array $options): void
     {
+        $this->initializeOptions();
         $this->extractExceptionClass($e);
         $this->extractCode($e);
         $this->extractMessage($e);

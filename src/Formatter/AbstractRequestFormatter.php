@@ -7,13 +7,21 @@ use Psr\Http\Message\RequestInterface;
 
 abstract class AbstractRequestFormatter
 {
-    /**
-     * @var string[]
-     */
     protected $options = [];
+
+    public function __construct()
+    {
+        $this->initializeOptions();
+    }
+
+    final protected function initializeOptions(array $options = [])
+    {
+        $this->options = empty($options) ? [] : $options;
+    }
 
     protected function extractArguments(RequestInterface $request, array $options): void
     {
+        $this->initializeOptions();
         $this->extractHttpMethodArgument($request);
         $this->extractBodyArgument($request);
         $this->extractCookiesArgument($request, $options);
