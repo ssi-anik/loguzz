@@ -13,8 +13,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
-use function GuzzleHttp\Promise\rejection_for;
-
 class LogMiddleware
 {
     protected $logger;
@@ -176,7 +174,7 @@ class LogMiddleware
                 $this->logger->{$this->getLogLevel()}($output);
             }
 
-            return rejection_for($reason);
+            return Create::rejectionFor($reason);
         };
     }
 }
