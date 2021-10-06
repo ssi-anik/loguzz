@@ -14,16 +14,18 @@ class ResponseArrayFormatterTest extends TestCase
     /** @var Client */
     protected $client;
 
-    public function setUp () : void {
+    public function setUp(): void
+    {
         $this->client = new Client([
-            'base_uri'   => 'https://httpbin.org',
+            'base_uri' => 'https://httpbin.org',
             'user-agent' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
         ]);
-        
+
         $this->formatter = new ResponseArrayFormatter();
     }
 
-    public function testResponseKey () {
+    public function testResponseKey()
+    {
         $request = new Request('GET', '/get');
         $response = $this->client->send($request);
         $format = $this->formatter->format($response);

@@ -14,20 +14,22 @@ class ResponseExceptionFormatterTest extends TestCase
     /** @var Client */
     protected $client;
 
-    public function setUp () : void {
+    public function setUp(): void
+    {
         $this->client = new Client([
-            'base_uri'   => 'https://not.a.valid.url.here',
+            'base_uri' => 'https://not.a.valid.url.here',
             'user-agent' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
         ]);
 
         $this->formatter = new ExceptionArrayFormatter();
     }
 
-    public function testException () {
+    public function testException()
+    {
         $request = new Request('GET', '/get');
         try {
             $this->client->send($request);
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
             $format = $this->formatter->format($e);
         }
 

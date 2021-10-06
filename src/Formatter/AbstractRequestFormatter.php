@@ -13,9 +13,10 @@ abstract class AbstractRequestFormatter
 
     /**
      * @param RequestInterface $request
-     * @param array            $options
+     * @param array $options
      */
-    protected function extractArguments (RequestInterface $request, array $options) {
+    protected function extractArguments(RequestInterface $request, array $options)
+    {
         $this->extractHttpMethodArgument($request);
         $this->extractBodyArgument($request);
         $this->extractCookiesArgument($request, $options);
@@ -26,14 +27,16 @@ abstract class AbstractRequestFormatter
     /**
      * @param RequestInterface $request
      */
-    private function extractHttpMethodArgument (RequestInterface $request) {
+    private function extractHttpMethodArgument(RequestInterface $request)
+    {
         $this->options['method'] = $request->getMethod();
     }
 
     /**
      * @param RequestInterface $request
      */
-    private function extractBodyArgument (RequestInterface $request) {
+    private function extractBodyArgument(RequestInterface $request)
+    {
         $body = $request->getBody();
 
         if ($body->isSeekable()) {
@@ -61,24 +64,31 @@ abstract class AbstractRequestFormatter
 
     /**
      * @param RequestInterface $request
-     * @param array            $options
+     * @param array $options
      */
-    private function extractCookiesArgument (RequestInterface $request, array $options) {
+    private function extractCookiesArgument(RequestInterface $request, array $options)
+    {
         if (!isset($options['cookies']) || !$options['cookies'] instanceof CookieJarInterface) {
             return;
         }
 
         $values = [];
-        $scheme = $request->getUri()->getScheme();
+        /*$scheme = $request->getUri()->getScheme();*/
         $host = $request->getUri()->getHost();
         $path = $request->getUri()->getPath();
 
-        /** @var SetCookie $cookie */
-        foreach ( $options['cookies'] as $cookie ) {
-            if ($cookie->matchesPath($path) && $cookie->matchesDomain($host) && !$cookie->isExpired() && (!$cookie->getSecure() || $scheme == 'https')) {
-
+        /** @var \GuzzleHttp\Cookie\SetCookie $cookie */
+        foreach ($options['cookies'] as $cookie) {
+            /*if ($cookie->matchesPath($path) && $cookie->matchesDomain($host) && !$cookie->isExpired()
+                 && (!$cookie->getSecure() || $scheme == 'https'))
+            {
                 $values[] = $cookie->getName() . '=' . $cookie->getValue();
+            }*/
+            if (!$cookie->matchesPath($path) || !$cookie->matchesDomain($host) || $cookie->isExpired()) {
+                continue;
             }
+
+            $values[] = $cookie->getName() . '=' . $cookie->getValue();
         }
 
         if ($values) {
@@ -89,8 +99,9 @@ abstract class AbstractRequestFormatter
     /**
      * @param RequestInterface $request
      */
-    private function extractHeadersArgument (RequestInterface $request) {
-        foreach ( $request->getHeaders() as $name => $header ) {
+    private function extractHeadersArgument(RequestInterface $request)
+    {
+        foreach ($request->getHeaders() as $name => $header) {
             if ('host' === strtolower($name) && $header[0] === $request->getUri()->getHost()) {
                 continue;
             }
@@ -100,7 +111,7 @@ abstract class AbstractRequestFormatter
                 continue;
             }
 
-            foreach ( (array) $header as $headerValue ) {
+            foreach ((array) $header as $headerValue) {
                 $this->options['headers'][$name] = $headerValue;
             }
         }
@@ -109,15 +120,16 @@ abstract class AbstractRequestFormatter
     /**
      * @param RequestInterface $request
      */
-    private function extractUrlArgument (RequestInterface $request) {
+    private function extractUrlArgument(RequestInterface $request)
+    {
         $this->options['url'] = (string) $request->getUri()->withFragment('');
     }
 
     /**
      * @param RequestInterface $request
-     * @param array            $options
+     * @param array $options
      *
      * @return string | array
      */
-    abstract public function format (RequestInterface $request, array $options = []);
+    abstract public function format(RequestInterface $request, array $options = []);
 }

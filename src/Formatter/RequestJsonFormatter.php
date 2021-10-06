@@ -8,11 +8,12 @@ class RequestJsonFormatter extends AbstractRequestFormatter
 {
     /**
      * @param RequestInterface $request
-     * @param array            $options
+     * @param array $options
      *
      * @return array
      */
-    public function format (RequestInterface $request, array $options = []) {
+    public function format(RequestInterface $request, array $options = [])
+    {
         $this->options = [];
 
         $this->extractArguments($request, $options);

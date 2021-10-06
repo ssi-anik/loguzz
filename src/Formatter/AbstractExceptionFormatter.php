@@ -3,8 +3,6 @@
 namespace Loguzz\Formatter;
 
 use Exception;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 
 abstract class AbstractExceptionFormatter
 {
@@ -12,9 +10,10 @@ abstract class AbstractExceptionFormatter
 
     /**
      * @param Exception $e
-     * @param array     $options
+     * @param array $options
      */
-    protected function extractArguments (Exception $e, array $options) {
+    protected function extractArguments(Exception $e, array $options)
+    {
         $this->extractExceptionClass($e);
         $this->extractCode($e);
         $this->extractMessage($e);
@@ -24,7 +23,8 @@ abstract class AbstractExceptionFormatter
     /**
      * @param Exception $e
      */
-    private function extractContext (Exception $e) {
+    private function extractContext(Exception $e)
+    {
         if (!method_exists($e, 'getHandlerContext')) {
             return;
         }
@@ -35,29 +35,32 @@ abstract class AbstractExceptionFormatter
     /**
      * @param Exception $e
      */
-    private function extractExceptionClass (Exception $e) {
+    private function extractExceptionClass(Exception $e)
+    {
         $this->options['class'] = get_class($e);
     }
 
     /**
      * @param Exception $e
      */
-    private function extractCode (Exception $e) {
+    private function extractCode(Exception $e)
+    {
         $this->options['code'] = $e->getCode();
     }
 
     /**
      * @param Exception $e
      */
-    private function extractMessage (Exception $e) {
+    private function extractMessage(Exception $e)
+    {
         $this->options['message'] = $e->getMessage();
     }
 
     /**
      * @param Exception $e
-     * @param array     $options
+     * @param array $options
      *
      * @return string | array
      */
-    abstract public function format (Exception $e, array $options = []);
+    abstract public function format(Exception $e, array $options = []);
 }

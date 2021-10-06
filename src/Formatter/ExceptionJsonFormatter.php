@@ -6,8 +6,9 @@ use Exception;
 
 class ExceptionJsonFormatter extends AbstractExceptionFormatter
 {
-    public function format (Exception $ex, array $options = []) {
-        $this->extractArguments($ex, $options);
+    public function format(Exception $e, array $options = [])
+    {
+        $this->extractArguments($e, $options);
 
         return json_encode($this->options);
     }

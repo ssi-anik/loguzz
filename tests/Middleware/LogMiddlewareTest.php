@@ -16,11 +16,13 @@ class LogMiddlewareTest extends TestCase
     /** @var LoggerInterface */
     protected $logger;
 
-    public function setUp () : void {
+    public function setUp(): void
+    {
         $this->logger = new TestLogger();
     }
 
-    private function getClient ($options = []) {
+    private function getClient($options = [])
+    {
         $handlerStack = HandlerStack::create();
         $handlerStack->push(new LogMiddleware($this->logger, $options), 'logger');
 
@@ -31,17 +33,19 @@ class LogMiddlewareTest extends TestCase
         }
 
         return new Client([
-            'handler'    => $handlerStack,
-            'base_uri'   => $uri,
+            'handler' => $handlerStack,
+            'base_uri' => $uri,
             'user-agent' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
         ]);
     }
 
-    private function getRequest () {
+    private function getRequest()
+    {
         return new Request('GET', '/get');
     }
 
-    public function testDefaultLogLevel () {
+    public function testDefaultLogLevel()
+    {
         $options = [
             'log_response' => false,
         ];
@@ -51,10 +55,11 @@ class LogMiddlewareTest extends TestCase
         $this->assertSame(LogLevel::INFO, $this->logger->records[0]['level']);
     }
 
-    public function testDefinedLogLevel () {
+    public function testDefinedLogLevel()
+    {
         $options = [
             'log_response' => false,
-            'log_level'    => 'notice',
+            'log_level' => 'notice',
         ];
         $client = $this->getClient($options);
 
@@ -62,9 +67,10 @@ class LogMiddlewareTest extends TestCase
         $this->assertSame(LogLevel::NOTICE, $this->logger->records[0]['level']);
     }
 
-    public function testNoLog () {
+    public function testNoLog()
+    {
         $client = $this->getClient([
-            'log_request'  => false,
+            'log_request' => false,
             'log_response' => false,
         ]);
 
@@ -72,46 +78,51 @@ class LogMiddlewareTest extends TestCase
         $this->assertCount(0, $this->logger->records);
     }
 
-    public function testRequestResponseLogs () {
+    public function testRequestResponseLogs()
+    {
         $client = $this->getClient();
 
         $client->send($this->getRequest());
         $this->assertCount(2, $this->logger->records);
     }
 
-    public function testTagsInLogs () {
-        $client = $this->getClient([ 'tag' => 'custom.tag' ]);
+    public function testTagsInLogs()
+    {
+        $client = $this->getClient(['tag' => 'custom.tag']);
 
         $client->send($this->getRequest());
         $this->assertStringContainsString('{"custom.tag":', $this->logger->records[0]['message']);
         $this->assertStringContainsString('{"custom.tag":', $this->logger->records[1]['message']);
     }
 
-    public function testTagsSeparator () {
-        $client = $this->getClient([ 'tag' => 'custom.tag', 'separate' => true, ]);
+    public function testTagsSeparator()
+    {
+        $client = $this->getClient(['tag' => 'custom.tag', 'separate' => true,]);
 
         $client->send($this->getRequest());
         $this->assertStringContainsString('{"custom.tag.request":', $this->logger->records[0]['message']);
         $this->assertStringContainsString('{"custom.tag.success":', $this->logger->records[1]['message']);
     }
 
-    public function testTagsSeparatorOnFailure () {
+    public function testTagsSeparatorOnFailure()
+    {
         $client = $this->getClient([
-            'tag'      => 'custom.tag',
+            'tag' => 'custom.tag',
             'separate' => true,
-            'uri'      => 'https://not.a.valid.url.here',
+            'uri' => 'https://not.a.valid.url.here',
         ]);
 
         try {
             $client->send($this->getRequest());
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
         }
         $this->assertStringContainsString('{"custom.tag.request":', $this->logger->records[0]['message']);
         $this->assertStringContainsString('{"custom.tag.failure":', $this->logger->records[1]['message']);
     }
 
-    public function testTagsJsonIsFalse () {
-        $client = $this->getClient([ 'tag' => 'custom.tag', 'force_json' => false ]);
+    public function testTagsJsonIsFalse()
+    {
+        $client = $this->getClient(['tag' => 'custom.tag', 'force_json' => false]);
 
         $client->send($this->getRequest());
         $this->assertIsArray($this->logger->records[0]['message']);
@@ -120,8 +131,9 @@ class LogMiddlewareTest extends TestCase
         $this->assertArrayHasKey('custom.tag', $this->logger->records[1]['message']);
     }
 
-    public function testTagsJsonIsTrue () {
-        $client = $this->getClient([ 'tag' => 'custom.tag', 'force_json' => 'casted to true value' ]);
+    public function testTagsJsonIsTrue()
+    {
+        $client = $this->getClient(['tag' => 'custom.tag', 'force_json' => 'casted to true value']);
 
         $client->send($this->getRequest());
         $this->assertIsString($this->logger->records[0]['message']);
@@ -130,9 +142,10 @@ class LogMiddlewareTest extends TestCase
         $this->assertStringContainsString('{"custom.tag":', $this->logger->records[1]['message']);
     }
 
-    public function testRequestFormatter () {
+    public function testRequestFormatter()
+    {
         $client = $this->getClient([
-            'log_response'      => false,
+            'log_response' => false,
             'request_formatter' => new RequestCurlFormatter,
         ]);
 
@@ -141,9 +154,10 @@ class LogMiddlewareTest extends TestCase
         $this->assertStringStartsWith('curl', $this->logger->records[0]['message']);
     }
 
-    public function testResponseFormatter () {
+    public function testResponseFormatter()
+    {
         $client = $this->getClient([
-            'log_request'        => false,
+            'log_request' => false,
             'response_formatter' => new ResponseJsonFormatter,
         ]);
 
@@ -155,12 +169,13 @@ class LogMiddlewareTest extends TestCase
         $this->assertStringContainsString('body', $record);
     }
 
-    public function testExceptionFormatter () {
-        $client = $this->getClient([ 'log_request' => false, 'uri' => 'https://not.a.valid.url.here' ]);
+    public function testExceptionFormatter()
+    {
+        $client = $this->getClient(['log_request' => false, 'uri' => 'https://not.a.valid.url.here']);
 
         try {
             $client->send($this->getRequest());
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
         }
 
         $record = $this->logger->records[0]['message'];

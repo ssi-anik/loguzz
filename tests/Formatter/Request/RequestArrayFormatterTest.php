@@ -14,11 +14,13 @@ class RequestArrayFormatterTest extends TestCase
      */
     protected $formatter;
 
-    public function setUp () : void {
+    public function setUp(): void
+    {
         $this->formatter = new RequestArrayFormatter();
     }
 
-    private function getRequest ($params = []) {
+    private function getRequest($params = [])
+    {
         $url = 'http://example.local';
         if (isset($params['url'])) {
             $url = $params['url'];
@@ -41,7 +43,8 @@ class RequestArrayFormatterTest extends TestCase
         return new Request('GET', $url, $headers, $queries);
     }
 
-    private function postRequest ($params = []) {
+    private function postRequest($params = [])
+    {
         $url = '';
         if (isset($params['url'])) {
             $url = $params['url'];
@@ -64,22 +67,25 @@ class RequestArrayFormatterTest extends TestCase
         return new Request('POST', $url, $headers, $body);
     }
 
-    public function testUserAgent () {
+    public function testUserAgent()
+    {
         $curl = $this->formatter->format($this->getRequest());
 
         $this->assertArrayHasKey("user-agent", $curl);
         $this->assertEquals(static::$USER_AGENT, $curl['user-agent']);
     }
 
-    public function testSimpleGet () {
+    public function testSimpleGet()
+    {
         $curl = $this->formatter->format($this->getRequest());
 
         $this->assertArrayHasKey("method", $curl);
     }
 
-    public function testSimpleGetWithHeader () {
+    public function testSimpleGetWithHeader()
+    {
         $curl = $this->formatter->format($this->getRequest([
-            'headers' => [ 'foo' => 'bar' ],
+            'headers' => ['foo' => 'bar'],
         ]));
 
         $this->assertArrayHasKey("headers", $curl);
@@ -87,10 +93,11 @@ class RequestArrayFormatterTest extends TestCase
         $this->assertEquals("bar", $curl['headers']['foo']);
     }
 
-    public function testSimpleGetWithMultipleHeaders () {
+    public function testSimpleGetWithMultipleHeaders()
+    {
         $curl = $this->formatter->format($this->getRequest([
             'headers' => [
-                'foo'             => 'bar',
+                'foo' => 'bar',
                 'Accept-Encoding' => 'gzip,deflate,sdch',
             ],
         ]));
@@ -100,23 +107,25 @@ class RequestArrayFormatterTest extends TestCase
         $this->assertEquals("gzip,deflate,sdch", $curl['headers']['Accept-Encoding']);
     }
 
-    public function testGetWithQueryString () {
-        $curl = $this->formatter->format($this->getRequest([ 'url' => 'http://example.local?foo=bar' ]));
+    public function testGetWithQueryString()
+    {
+        $curl = $this->formatter->format($this->getRequest(['url' => 'http://example.local?foo=bar']));
 
         $this->assertArrayHasKey('url', $curl);
         $this->stringContains('foo=bar', $curl['url']);
 
-        $body = http_build_query([ 'foo' => 'bar', 'hello' => 'world' ]);
-        $curl = $this->formatter->format($this->getRequest([ 'query' => $body ]));
+        $body = http_build_query(['foo' => 'bar', 'hello' => 'world']);
+        $curl = $this->formatter->format($this->getRequest(['query' => $body]));
 
         $this->assertEquals('GET', $curl['method']);
         $this->assertArrayHasKey('data', $curl);
         $this->assertEquals('foo=bar&hello=world', $curl['data']);
     }
 
-    public function testPostRequest () {
-        $body = http_build_query([ 'foo' => 'bar', 'hello' => 'world' ]);
-        $curl = $this->formatter->format($this->postRequest([ 'body' => $body ]));
+    public function testPostRequest()
+    {
+        $body = http_build_query(['foo' => 'bar', 'hello' => 'world']);
+        $curl = $this->formatter->format($this->postRequest(['body' => $body]));
 
         $this->assertEquals('POST', $curl['method']);
         $this->assertNotEquals('GET', $curl['method']);
@@ -124,28 +133,32 @@ class RequestArrayFormatterTest extends TestCase
         $this->assertEquals('foo=bar&hello=world', $curl['data']);
     }
 
-    public function testHeadRequest () {
+    public function testHeadRequest()
+    {
         $request = new Request('HEAD', 'http://example.local');
         $curl = $this->formatter->format($request);
 
         $this->assertEquals('HEAD', $curl['method']);
     }
 
-    public function testOptionsRequest () {
+    public function testOptionsRequest()
+    {
         $request = new Request('OPTIONS', 'http://example.local');
         $curl = $this->formatter->format($request);
 
         $this->assertEquals('OPTIONS', $curl['method']);
     }
 
-    public function testDeleteRequest () {
+    public function testDeleteRequest()
+    {
         $request = new Request('DELETE', 'http://example.local/users/4');
         $curl = $this->formatter->format($request);
 
         $this->assertEquals('DELETE', $curl['method']);
     }
 
-    public function testPutRequest () {
+    public function testPutRequest()
+    {
         $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
         $curl = $this->formatter->format($request);
 
@@ -154,7 +167,8 @@ class RequestArrayFormatterTest extends TestCase
         $this->assertEquals('foo=bar&hello=world', $curl['data']);
     }
 
-    public function testProperBodyReading () {
+    public function testProperBodyReading()
+    {
         $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
         $content = $request->getBody()->getContents();
 
@@ -165,8 +179,9 @@ class RequestArrayFormatterTest extends TestCase
         $this->assertEquals("PUT", $curl['method']);
     }
 
-    public function testExtractBodyArgument () {
-        $headers = [ 'X-Foo' => 'Bar' ];
+    public function testExtractBodyArgument()
+    {
+        $headers = ['X-Foo' => 'Bar'];
         $body = chr(0) . 'foo=bar&hello=world';
         // clean input of null bytes
         $body = str_replace(chr(0), '', $body);
