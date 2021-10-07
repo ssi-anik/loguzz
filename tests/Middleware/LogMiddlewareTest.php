@@ -21,7 +21,7 @@ class LogMiddlewareTest extends TestCase
         $this->logger = new TestLogger();
     }
 
-    private function getClient($options = [])
+    private function getClient($options = []): Client
     {
         $handlerStack = HandlerStack::create();
         $handlerStack->push(new LogMiddleware($this->logger, $options), 'logger');
@@ -39,7 +39,7 @@ class LogMiddlewareTest extends TestCase
         ]);
     }
 
-    private function getRequest()
+    private function getRequest(): Request
     {
         return new Request('GET', '/get');
     }

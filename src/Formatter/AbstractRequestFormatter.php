@@ -67,27 +67,20 @@ abstract class AbstractRequestFormatter
             return;
         }
 
-        $values = [];
-        /*$scheme = $request->getUri()->getScheme();*/
-        $host = $request->getUri()->getHost();
-        $path = $request->getUri()->getPath();
-
-        /** @var \GuzzleHttp\Cookie\SetCookie $cookie */
-        foreach ($options['cookies'] as $cookie) {
-            /*if ($cookie->matchesPath($path) && $cookie->matchesDomain($host) && !$cookie->isExpired()
-                 && (!$cookie->getSecure() || $scheme == 'https'))
-            {
-                $values[] = $cookie->getName() . '=' . $cookie->getValue();
-            }*/
-            if (!$cookie->matchesPath($path) || !$cookie->matchesDomain($host) || $cookie->isExpired()) {
-                continue;
-            }
-
-            $values[] = $cookie->getName() . '=' . $cookie->getValue();
-        }
-
-        if ($values) {
-            $this->options['cookies'] = $values;
+        if ($cookies = $options['cookies']->toArray()) {
+            $this->options['cookies'] = array_map(function ($cookie) {
+                return [
+                    'name' => $cookie['Name'] ?? null,
+                    'value' => $cookie['Value'] ?? null,
+                    'domain' => $cookie['Domain'] ?? null,
+                    'path' => $cookie['Path'] ?? '/',
+                    'max-age' => $cookie['Max-age'] ?? null,
+                    'expires' => $cookie['Expires'] ?? null,
+                    'secure' => $cookie['Secure'] ?? false,
+                    'discard' => $cookie['Discard'] ?? false,
+                    'httponly' => $cookie['Httponly'] ?? false,
+                ];
+            }, $cookies);
         }
     }
 
@@ -95,6 +88,10 @@ abstract class AbstractRequestFormatter
     {
         foreach ($request->getHeaders() as $name => $header) {
             if ('host' === strtolower($name) && $header[0] === $request->getUri()->getHost()) {
+                continue;
+            }
+
+            if ('cookie' === strtolower($name)) {
                 continue;
             }
 

@@ -125,7 +125,9 @@ class RequestCurlFormatter extends AbstractRequestFormatter
     private function serializeCookiesOption(): void
     {
         if (isset($this->options['cookies'])) {
-            $this->addOption('b', escapeshellarg(implode('; ', $this->options['cookies'])));
+            $this->addOption('cookie', escapeshellarg(implode('; ', array_map(function ($cookie) {
+                return sprintf('%s=%s', $cookie['name'], $cookie['value']);
+            }, $this->options['cookies']))));
         }
     }
 

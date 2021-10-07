@@ -1,5 +1,6 @@
 <?php
 
+use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Psr7\Request;
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestCurlFormatter;
@@ -17,7 +18,7 @@ class RequestCurlFormatterTest extends TestCase
         $this->formatter = new RequestCurlFormatter();
     }
 
-    private function getRequest($params = [])
+    private function getRequest($params = []): Request
     {
         $url = 'http://example.local';
         if (isset($params['url'])) {
@@ -40,7 +41,7 @@ class RequestCurlFormatterTest extends TestCase
         return new Request('GET', $url, $headers, $queries);
     }
 
-    private function postRequest($params = [])
+    private function postRequest($params = []): Request
     {
         $url = '';
         if (isset($params['url'])) {
@@ -201,5 +202,17 @@ class RequestCurlFormatterTest extends TestCase
         $curl = $this->formatter->format($request);
 
         $this->assertStringContainsString('foo=bar&hello=world', $curl);
+    }
+
+    public function testExtractCookieArgument()
+    {
+        $request = new Request('GET', 'http://example.local', [], 'foo=bar&hello=world');
+        $request->getBody()->getContents();
+
+        $curl = $this->formatter->format($request, [
+            'cookies' => CookieJar::fromArray(['cookie-name' => 'cookie-value'], 'example.local')
+        ]);
+
+        $this->assertStringContainsString("-cookie 'cookie-name=cookie-value'", $curl);
     }
 }

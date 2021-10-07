@@ -1,5 +1,6 @@
 <?php
 
+use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Psr7\Request;
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestArrayFormatter;
@@ -19,7 +20,7 @@ class RequestArrayFormatterTest extends TestCase
         $this->formatter = new RequestArrayFormatter();
     }
 
-    private function getRequest($params = [])
+    private function getRequest($params = []): Request
     {
         $url = 'http://example.local';
         if (isset($params['url'])) {
@@ -43,7 +44,7 @@ class RequestArrayFormatterTest extends TestCase
         return new Request('GET', $url, $headers, $queries);
     }
 
-    private function postRequest($params = [])
+    private function postRequest($params = []): Request
     {
         $url = '';
         if (isset($params['url'])) {
@@ -189,5 +190,33 @@ class RequestArrayFormatterTest extends TestCase
         $curl = $this->formatter->format($request);
 
         $this->assertEquals('foo=bar&hello=world', $curl['data']);
+    }
+
+    public function testCookieIsParsedFromRequest()
+    {
+        $request = new Request('GET', 'http://example.local', [], 'foo=bar&hello=world');
+        $curl = $this->formatter->format($request, [
+            'cookies' => CookieJar::fromArray(['cookie-name' => 'cookie-value'], 'example.local'),
+        ]);
+
+        $this->assertArrayHasKey('cookies', $curl);
+        $this->assertCount(1, $curl['cookies']);
+        $this->assertEquals('cookie-name', $curl['cookies'][0]['name']);
+        $this->assertEquals('cookie-value', $curl['cookies'][0]['value']);
+
+        $keys = [
+            'name',
+            'value',
+            'domain',
+            'path',
+            'max-age',
+            'expires',
+            'secure',
+            'discard',
+            'httponly',
+        ];
+        foreach ($keys as $key) {
+            $this->assertArrayHasKey($key, $curl['cookies'][0]);
+        }
     }
 }
