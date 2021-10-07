@@ -9,8 +9,6 @@ class ResponseArrayFormatter extends AbstractResponseFormatter
 {
     public function format(RequestInterface $request, ResponseInterface $response, array $options = []): array
     {
-        $this->extractArguments($request, $response, $options);
-
-        return $this->options;
+        return $this->parseData($request, $response, $options);
     }
 }

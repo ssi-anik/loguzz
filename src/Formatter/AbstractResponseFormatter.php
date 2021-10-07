@@ -8,86 +8,40 @@ use Psr\Http\Message\ResponseInterface;
 
 abstract class AbstractResponseFormatter
 {
-    protected $options = [];
-
-    public function __construct()
+    protected function parseData(RequestInterface $request, ResponseInterface $response, array $options): array
     {
-        $this->initializeOptions();
+        return [
+            'protocol' => $this->getProtocol($response),
+            'reason_phrase' => $this->getReasonPhrase($response),
+            'status_code' => $this->getStatusCode($response),
+            'cookies' => $this->getCookies($request, $response),
+            'headers' => $this->getResponseHeaders($response),
+            'size' => $this->getResponseBodySize($response),
+            'body' => $this->getResponseBody($response),
+        ];
     }
 
-    final protected function initializeOptions(array $options = [])
+    final protected function getProtocol(ResponseInterface $response): string
     {
-        $this->options = empty($options) ? [] : $options;
+        return $response->getProtocolVersion();
     }
 
-    protected function extractArguments(RequestInterface $request, ResponseInterface $response, array $options): void
+    final protected function getReasonPhrase(ResponseInterface $response): string
     {
-        $this->initializeOptions();
-        $this->extractProtocol($response);
-        $this->extractReasonPhrase($response);
-        $this->extractStatusCode($response);
-        $this->extractCookie($request, $response);
-        $this->extractHeaders($response);
-        $this->extractBodySize($response);
-        $this->extractBody($response);
+        return $response->getReasonPhrase();
     }
 
-    final protected function extractBodySize(ResponseInterface $response): void
+    final protected function getStatusCode(ResponseInterface $response): int
     {
-        $this->options['size'] = $response->getBody()->getSize();
+        return $response->getStatusCode();
     }
 
-    final protected function extractBody(ResponseInterface $response): void
-    {
-        $body = $response->getBody();
-        if (!$body->isReadable()) {
-            $this->options['body'] = '';
-
-            return;
-        }
-
-        if ($body->isSeekable()) {
-            $previousPosition = $body->tell();
-            $body->rewind();
-        }
-
-        $contents = $body->getContents();
-
-        if ($body->isSeekable()) {
-            $body->seek($previousPosition);
-        }
-
-        if ($contents) {
-            $this->options['body'] = $contents;
-        }
-    }
-
-    final protected function extractReasonPhrase(ResponseInterface $response): void
-    {
-        $this->options['reason_phrase'] = $response->getReasonPhrase();
-    }
-
-    final protected function extractStatusCode(ResponseInterface $response): void
-    {
-        $this->options['status_code'] = $response->getStatusCode();
-    }
-
-    final protected function extractProtocol(ResponseInterface $response): void
-    {
-        $this->options['protocol'] = $response->getProtocolVersion();
-    }
-
-    final protected function extractHeaders(ResponseInterface $response): void
-    {
-        $this->options['headers'] = $response->getHeaders();
-    }
-
-    final protected function extractCookie(RequestInterface $request, ResponseInterface $response): void
+    final protected function getCookies(RequestInterface $request, ResponseInterface $response): array
     {
         $cookieJar = new CookieJar();
-        $cookieJar->extractCookies($request, $response);
+        $cookieJar->extractCookies(clone $request, clone $response);
 
-        $this->options['cookies'] = array_map(function ($cookie) {
+        return array_map(function ($cookie) {
             return [
                 'name' => $cookie['Name'] ?? null,
                 'value' => $cookie['Value'] ?? null,
@@ -100,6 +54,31 @@ abstract class AbstractResponseFormatter
                 'httponly' => $cookie['Httponly'] ?? false,
             ];
         }, $cookieJar->toArray());
+    }
+
+    final protected function getResponseHeaders(ResponseInterface $response): array
+    {
+        return $response->getHeaders();
+    }
+
+    final protected function getResponseBodySize(ResponseInterface $response): ?int
+    {
+        return $response->getBody()->getSize();
+    }
+
+    final protected function getResponseBody(ResponseInterface $response): string
+    {
+        // response is cloned to avoid any accidental data damage
+        $body = (clone $response)->getBody();
+        if (!$body->isReadable()) {
+            return '';
+        }
+
+        if ($body->isSeekable()) {
+            $body->rewind();
+        }
+
+        return $body->getContents();
     }
 
     abstract public function format(RequestInterface $request, ResponseInterface $response, array $options = []);

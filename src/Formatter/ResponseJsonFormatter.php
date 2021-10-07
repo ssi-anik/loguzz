@@ -9,8 +9,6 @@ class ResponseJsonFormatter extends AbstractResponseFormatter
 {
     public function format(RequestInterface $request, ResponseInterface $response, array $options = []): string
     {
-        $this->extractArguments($request, $response, $options);
-
-        return json_encode($this->options);
+        return json_encode($this->parseData($request, $response, $options));
     }
 }
