@@ -9,8 +9,6 @@ class ExceptionJsonFormatter extends AbstractExceptionFormatter
 {
     public function format(RequestInterface $request, Exception $e, array $options = []): string
     {
-        $this->extractArguments($request, $e, $options);
-
-        return json_encode($this->options);
+        return json_encode($this->parseData($request, $e, $options));
     }
 }

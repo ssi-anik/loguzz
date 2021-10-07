@@ -7,49 +7,34 @@ use Psr\Http\Message\RequestInterface;
 
 abstract class AbstractExceptionFormatter
 {
-    protected $options = [];
-
-    public function __construct()
+    protected function parseData(RequestInterface $request, Exception $e, array $options): array
     {
-        $this->initializeOptions();
+        return [
+            'code' => $this->getCode($e),
+            'message' => $this->getMessage($e),
+            'class' => $this->getExceptionClass($e),
+            'context' => $this->getContext($e),
+        ];
     }
 
-    final protected function initializeOptions(array $options = [])
+    final protected function getContext(Exception $e): array
     {
-        $this->options = empty($options) ? [] : $options;
+        return method_exists($e, 'getHandlerContext') ? $e->getHandlerContext() : [];
     }
 
-    protected function extractArguments(RequestInterface $request, Exception $e, array $options): void
+    final protected function getExceptionClass(Exception $e): string
     {
-        $this->initializeOptions();
-        $this->extractExceptionClass($e);
-        $this->extractCode($e);
-        $this->extractMessage($e);
-        $this->extractContext($e);
+        return get_class($e);
     }
 
-    final protected function extractContext(Exception $e): void
+    final protected function getCode(Exception $e): int
     {
-        if (!method_exists($e, 'getHandlerContext')) {
-            return;
-        }
-
-        $this->options['context'] = $e->getHandlerContext();
+        return $e->getCode();
     }
 
-    final protected function extractExceptionClass(Exception $e): void
+    final protected function getMessage(Exception $e): string
     {
-        $this->options['class'] = get_class($e);
-    }
-
-    final protected function extractCode(Exception $e): void
-    {
-        $this->options['code'] = $e->getCode();
-    }
-
-    final protected function extractMessage(Exception $e): void
-    {
-        $this->options['message'] = $e->getMessage();
+        return $e->getMessage();
     }
 
     abstract public function format(RequestInterface $request, Exception $e, array $options = []);

@@ -9,8 +9,6 @@ class ExceptionArrayFormatter extends AbstractExceptionFormatter
 {
     public function format(RequestInterface $request, Exception $e, array $options = []): array
     {
-        $this->extractArguments($request, $e, $options);
-
-        return $this->options;
+        return $this->parseData($request, $e, $options);
     }
 }
