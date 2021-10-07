@@ -35,7 +35,7 @@ class LogMiddlewareTest extends TestCase
         return new Client([
             'handler' => $handlerStack,
             'base_uri' => $uri,
-            'user-agent' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+            'user-agent' => 'guzzle-log-middleware',
         ]);
     }
 

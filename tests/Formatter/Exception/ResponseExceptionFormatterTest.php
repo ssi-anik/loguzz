@@ -18,7 +18,7 @@ class ResponseExceptionFormatterTest extends TestCase
     {
         $this->client = new Client([
             'base_uri' => 'https://not.a.valid.url.here',
-            'user-agent' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+            'user-agent' => 'guzzle-log-middleware',
         ]);
 
         $this->formatter = new ExceptionArrayFormatter();

@@ -19,7 +19,7 @@ class ResponseArrayFormatterTest extends TestCase
     {
         $this->client = new Client([
             /*'base_uri' => 'https://httpbin.org',*/
-            'user-agent' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+            'user-agent' => 'guzzle-log-middleware',
             RequestOptions::ALLOW_REDIRECTS => false,
         ]);
 
