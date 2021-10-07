@@ -8,8 +8,6 @@ class RequestArrayFormatter extends AbstractRequestFormatter
 {
     public function format(RequestInterface $request, array $options = []): array
     {
-        $this->extractArguments($request, $options);
-
-        return $this->options;
+        return $this->parseData($request, $options);
     }
 }

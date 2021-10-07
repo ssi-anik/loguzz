@@ -91,7 +91,7 @@ class RequestArrayFormatterTest extends TestCase
 
         $this->assertArrayHasKey("headers", $curl);
         $this->assertArrayHasKey("foo", $curl['headers']);
-        $this->assertEquals("bar", $curl['headers']['foo']);
+        $this->assertEquals(["bar"], $curl['headers']['foo']);
     }
 
     public function testSimpleGetWithMultipleHeaders()
@@ -104,8 +104,8 @@ class RequestArrayFormatterTest extends TestCase
         ]));
 
         $this->assertArrayHasKey("headers", $curl);
-        $this->assertEquals("bar", $curl['headers']['foo']);
-        $this->assertEquals("gzip,deflate,sdch", $curl['headers']['Accept-Encoding']);
+        $this->assertEquals(["bar"], $curl['headers']['foo']);
+        $this->assertEquals(["gzip,deflate,sdch"], $curl['headers']['Accept-Encoding']);
     }
 
     public function testGetWithQueryString()
