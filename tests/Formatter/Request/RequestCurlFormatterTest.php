@@ -93,6 +93,13 @@ class RequestCurlFormatterTest extends TestCase
         $this->assertEquals("curl --url 'http://example.local' -H 'foo: bar'", $result);
     }
 
+    public function testMultipleHeadersWithSameName()
+    {
+        $result = $this->formatter->format($this->getRequest(['headers' => ['foo' => ['bar', 'baz']]]));
+
+        $this->assertEquals("curl --url 'http://example.local' -H 'foo: bar' -H 'foo: baz'", $result);
+    }
+
     public function testSimpleGetWithMultipleHeaders()
     {
         $result = $this->formatter->format($this->getRequest([
