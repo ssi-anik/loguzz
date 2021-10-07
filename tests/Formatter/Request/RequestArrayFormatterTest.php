@@ -119,8 +119,8 @@ class RequestArrayFormatterTest extends TestCase
         $curl = $this->formatter->format($this->getRequest(['query' => $body]));
 
         $this->assertEquals('GET', $curl['method']);
-        $this->assertArrayHasKey('data', $curl);
-        $this->assertEquals('foo=bar&hello=world', $curl['data']);
+        $this->assertArrayHasKey('body', $curl);
+        $this->assertEquals('foo=bar&hello=world', $curl['body']);
     }
 
     public function testPostRequest()
@@ -130,8 +130,8 @@ class RequestArrayFormatterTest extends TestCase
 
         $this->assertEquals('POST', $curl['method']);
         $this->assertNotEquals('GET', $curl['method']);
-        $this->assertArrayHasKey('data', $curl);
-        $this->assertEquals('foo=bar&hello=world', $curl['data']);
+        $this->assertArrayHasKey('body', $curl);
+        $this->assertEquals('foo=bar&hello=world', $curl['body']);
     }
 
     public function testHeadRequest()
@@ -164,8 +164,8 @@ class RequestArrayFormatterTest extends TestCase
         $curl = $this->formatter->format($request);
 
         $this->assertEquals('PUT', $curl['method']);
-        $this->assertArrayHasKey('data', $curl);
-        $this->assertEquals('foo=bar&hello=world', $curl['data']);
+        $this->assertArrayHasKey('body', $curl);
+        $this->assertEquals('foo=bar&hello=world', $curl['body']);
     }
 
     public function testProperBodyReading()
@@ -175,8 +175,8 @@ class RequestArrayFormatterTest extends TestCase
 
         $curl = $this->formatter->format($request);
 
-        $this->assertEquals($content, $curl['data']);
-        $this->assertEquals('foo=bar&hello=world', $curl['data']);
+        $this->assertEquals($content, $curl['body']);
+        $this->assertEquals('foo=bar&hello=world', $curl['body']);
         $this->assertEquals("PUT", $curl['method']);
     }
 
@@ -189,7 +189,7 @@ class RequestArrayFormatterTest extends TestCase
         $request = new Request('POST', 'http://example.local', $headers, $body);
         $curl = $this->formatter->format($request);
 
-        $this->assertEquals('foo=bar&hello=world', $curl['data']);
+        $this->assertEquals('foo=bar&hello=world', $curl['body']);
     }
 
     public function testCookieIsParsedFromRequest()

@@ -11,7 +11,7 @@ abstract class AbstractRequestFormatter
     {
         return [
             'method' => $this->getHttpMethod($request),
-            'data' => $this->getRequestBody($request),
+            'body' => $this->getRequestBody($request),
             'cookies' => $this->getCookie($request, $options),
             'headers' => $this->getRequestHeaders($request),
             'user-agent' => $this->getUserAgent($request),
