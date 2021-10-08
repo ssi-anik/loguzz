@@ -1,16 +1,12 @@
 <?php
 
+use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestArrayFormatter;
 use Loguzz\Test\Formatter\Request\RequestFormatterTest;
 
 class RequestArrayFormatterTest extends RequestFormatterTest
 {
-    /**
-     * @var RequestArrayFormatter
-     */
-    protected $formatter;
-
-    protected function getFormatter(): RequestArrayFormatter
+    protected function getFormatter(): AbstractRequestFormatter
     {
         return new RequestArrayFormatter();
     }
