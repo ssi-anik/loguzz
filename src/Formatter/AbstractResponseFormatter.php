@@ -46,7 +46,17 @@ abstract class AbstractResponseFormatter
 
     final protected function getResponseHeaders(ResponseInterface $response): array
     {
-        return $response->getHeaders();
+        $headers = [];
+        $excludeHeaders = ['set-cookie'];
+        foreach ($response->getHeaders() as $name => $value) {
+            if (in_array(strtolower($name), $excludeHeaders)) {
+                continue;
+            }
+
+            $headers[$name] = $value;
+        }
+
+        return $headers;
     }
 
     final protected function getResponseBodySize(ResponseInterface $response): ?int
