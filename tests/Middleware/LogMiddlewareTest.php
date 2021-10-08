@@ -1,186 +1,152 @@
 <?php
 
-use GuzzleHttp\Client;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Request;
-use Loguzz\Formatter\RequestCurlFormatter;
-use Loguzz\Formatter\ResponseJsonFormatter;
-use Loguzz\Middleware\LogMiddleware;
-use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
+use GuzzleHttp\Exception\ConnectException;
+use Loguzz\Formatter\RequestJsonFormatter;
+use Loguzz\Formatter\ResponseArrayFormatter;
+use Loguzz\Test\MiddlewareTestCase;
 use Psr\Log\LogLevel;
-use Psr\Log\Test\TestLogger;
 
-class LogMiddlewareTest extends TestCase
+class LogMiddlewareTest extends MiddlewareTestCase
 {
-    /** @var LoggerInterface */
-    protected $logger;
-
-    public function setUp(): void
+    public function testDefaultLogLevelIsDebug()
     {
-        $this->logger = new TestLogger();
-    }
+        $dto = $this->objectFactory();
 
-    private function getClient($options = []): Client
-    {
-        $handlerStack = HandlerStack::create();
-        $handlerStack->push(new LogMiddleware($this->logger, $options), 'logger');
+        $logger = $dto->logger;
+        $client = $dto->client;
 
-        if (isset($options['uri'])) {
-            $uri = $options['uri'];
-        } else {
-            $uri = 'https://httpbin.org';
+        $client->send($dto->request);
+
+        foreach ($logger->records as $record) {
+            $this->assertEquals(LogLevel::DEBUG, $record['level']);
         }
-
-        return new Client([
-            'handler' => $handlerStack,
-            'base_uri' => $uri,
-            'user-agent' => 'guzzle-log-middleware',
-        ]);
     }
 
-    private function getRequest(): Request
+    public function testUserCanChangeLogLevel()
     {
-        return new Request('GET', '/get');
+        $dto = $this->objectFactory(['log_level' => 'info',]);
+
+        $dto->client->send($dto->request);
+        $this->assertEquals(LogLevel::INFO, $dto->logger->records[0]['level']);
     }
 
-    public function testDefaultLogLevel()
+    public function testUserCanDisableAllTypesOfLogging()
     {
-        $options = [
-            'log_response' => false,
-        ];
-        $client = $this->getClient($options);
+        $dto = $this->objectFactory(
+            [
+                'log_request' => false,
+                'log_response' => false,
+            ]
+        );
 
-        $client->send($this->getRequest());
-        $this->assertSame(LogLevel::INFO, $this->logger->records[0]['level']);
+        $dto->client->send($dto->request);
+        $this->assertCount(0, $dto->logger->records);
     }
 
-    public function testDefinedLogLevel()
+    public function testByDefaultLoggerLogsRequestAndResponse()
     {
-        $options = [
-            'log_response' => false,
-            'log_level' => 'notice',
-        ];
-        $client = $this->getClient($options);
+        $dto = $this->objectFactory();
 
-        $client->send($this->getRequest());
-        $this->assertSame(LogLevel::NOTICE, $this->logger->records[0]['level']);
+        $dto->client->send($dto->request);
+        $this->assertCount(2, $dto->logger->records);
     }
 
-    public function testNoLog()
+    public function testWithoutTagItShouldLogWhateverIsProvidedByTheFormatter()
     {
-        $client = $this->getClient([
-            'log_request' => false,
-            'log_response' => false,
-        ]);
+        $dto = $this->objectFactory();
 
-        $client->send($this->getRequest());
-        $this->assertCount(0, $this->logger->records);
+        $dto->client->send($dto->request);
+        $this->assertStringStartsWith('curl', $dto->logger->records[0]['message']);
     }
 
-    public function testRequestResponseLogs()
+    public function testUserCanUseCustomTagsForLogging()
     {
-        $client = $this->getClient();
+        $dto = $this->objectFactory(['tag' => 'custom.tag']);
 
-        $client->send($this->getRequest());
-        $this->assertCount(2, $this->logger->records);
+        $dto->client->send($dto->request);
+        $this->assertStringContainsString('{"custom.tag":', $dto->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag":', $dto->logger->records[1]['message']);
     }
 
-    public function testTagsInLogs()
+    public function testTagsWithRequestAndResponseSeparator()
     {
-        $client = $this->getClient(['tag' => 'custom.tag']);
+        $dto = $this->objectFactory(['tag' => 'custom.tag', 'separate' => true]);
 
-        $client->send($this->getRequest());
-        $this->assertStringContainsString('{"custom.tag":', $this->logger->records[0]['message']);
-        $this->assertStringContainsString('{"custom.tag":', $this->logger->records[1]['message']);
+        $dto->client->send($dto->request);
+        $this->assertStringContainsString('{"custom.tag.request":', $dto->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag.success":', $dto->logger->records[1]['message']);
     }
 
-    public function testTagsSeparator()
+    public function testTagsSeparatorForFailure()
     {
-        $client = $this->getClient(['tag' => 'custom.tag', 'separate' => true,]);
-
-        $client->send($this->getRequest());
-        $this->assertStringContainsString('{"custom.tag.request":', $this->logger->records[0]['message']);
-        $this->assertStringContainsString('{"custom.tag.success":', $this->logger->records[1]['message']);
-    }
-
-    public function testTagsSeparatorOnFailure()
-    {
-        $client = $this->getClient([
-            'tag' => 'custom.tag',
-            'separate' => true,
-            'uri' => 'https://not.a.valid.url.here',
-        ]);
+        $response = new ConnectException('Cannot connect to the host', $this->createRequest());
+        $dto = $this->objectFactory(['tag' => 'custom.tag', 'separate' => true], $response);
 
         try {
-            $client->send($this->getRequest());
+            $dto->client->send($dto->request);
         } catch (Exception $e) {
         }
-        $this->assertStringContainsString('{"custom.tag.request":', $this->logger->records[0]['message']);
-        $this->assertStringContainsString('{"custom.tag.failure":', $this->logger->records[1]['message']);
+
+        $this->assertStringContainsString('{"custom.tag.request":', $dto->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag.failure":', $dto->logger->records[1]['message']);
     }
 
-    public function testTagsJsonIsFalse()
+    public function testWhenTaggingItShouldLogAsJsonByDefault()
     {
-        $client = $this->getClient(['tag' => 'custom.tag', 'force_json' => false]);
+        $dto = $this->objectFactory(['tag' => 'custom.tag']);
 
-        $client->send($this->getRequest());
-        $this->assertIsArray($this->logger->records[0]['message']);
-        $this->assertIsArray($this->logger->records[1]['message']);
-        $this->assertArrayHasKey('custom.tag', $this->logger->records[0]['message']);
-        $this->assertArrayHasKey('custom.tag', $this->logger->records[1]['message']);
+        $dto->client->send($dto->request);
+
+        $this->assertIsString($dto->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag"', $dto->logger->records[0]['message']);
+        $this->assertStringContainsString('{"custom.tag"', $dto->logger->records[1]['message']);
     }
 
-    public function testTagsJsonIsTrue()
+    public function testWhenTaggingItShouldLogAsArrayIfNotJson()
     {
-        $client = $this->getClient(['tag' => 'custom.tag', 'force_json' => 'casted to true value']);
+        $dto = $this->objectFactory(['tag' => 'custom.tag', 'force_json' => false]);
 
-        $client->send($this->getRequest());
-        $this->assertIsString($this->logger->records[0]['message']);
-        $this->assertIsString($this->logger->records[1]['message']);
-        $this->assertStringContainsString('{"custom.tag":', $this->logger->records[0]['message']);
-        $this->assertStringContainsString('{"custom.tag":', $this->logger->records[1]['message']);
+        $dto->client->send($dto->request);
+        $this->assertIsArray($dto->logger->records[0]['message']);
+        $this->assertArrayHasKey('custom.tag', $dto->logger->records[0]['message']);
+        $this->assertArrayHasKey('custom.tag', $dto->logger->records[1]['message']);
     }
 
-    public function testRequestFormatter()
+    public function testUserCanApplyRequestFormatter()
     {
-        $client = $this->getClient([
-            'log_response' => false,
-            'request_formatter' => new RequestCurlFormatter,
-        ]);
+        $dto = $this->objectFactory(['request_formatter' => new RequestJsonFormatter(),]);
 
-        $client->send($this->getRequest());
-        $this->assertCount(1, $this->logger->records);
-        $this->assertStringStartsWith('curl', $this->logger->records[0]['message']);
+        $dto->client->send($dto->request);
+        $this->assertIsString($dto->logger->records[0]['message']);
+        $this->assertStringNotContainsString('curl', $dto->logger->records[0]['message']);
     }
 
     public function testResponseFormatter()
     {
-        $client = $this->getClient([
-            'log_request' => false,
-            'response_formatter' => new ResponseJsonFormatter,
-        ]);
+        $dto = $this->objectFactory(['response_formatter' => new ResponseArrayFormatter(),]);
 
-        $client->send($this->getRequest());
+        $dto->client->send($dto->request);
+        $loggedMessage = $dto->logger->records[1]['message'];
+        $this->assertIsArray($loggedMessage);
 
-        $record = $this->logger->records[0]['message'];
-        $this->assertStringContainsString('protocol', $record);
-        $this->assertStringContainsString('headers', $record);
-        $this->assertStringContainsString('body', $record);
+        $this->assertArrayHasKey('protocol', $loggedMessage);
+        $this->assertArrayHasKey('headers', $loggedMessage);
+        $this->assertArrayHasKey('body', $loggedMessage);
     }
 
     public function testExceptionFormatter()
     {
-        $client = $this->getClient(['log_request' => false, 'uri' => 'https://not.a.valid.url.here']);
+        $response = new ConnectException('Cannot connect to the host', $this->createRequest());
+        $dto = $this->objectFactory([], $response);
 
         try {
-            $client->send($this->getRequest());
+            $dto->client->send($dto->request);
         } catch (Exception $e) {
         }
 
-        $record = $this->logger->records[0]['message'];
-        $this->assertStringContainsString('class', $record);
-        $this->assertStringContainsString('code', $record);
-        $this->assertStringContainsString('message', $record);
+        $loggedMessage = $dto->logger->records[1]['message'];
+        $this->assertStringContainsString('class', $loggedMessage);
+        $this->assertStringContainsString('code', $loggedMessage);
+        $this->assertStringContainsString('message', $loggedMessage);
     }
 }
