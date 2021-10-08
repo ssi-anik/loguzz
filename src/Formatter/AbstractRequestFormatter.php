@@ -21,11 +21,6 @@ abstract class AbstractRequestFormatter
 
     final protected function getHttpMethod(RequestInterface $request): string
     {
-        //if get request has data Add G otherwise curl will make a post request
-        /*if (!empty($this->getRequestBody($request)) && 'GET' === ($method = $request->getMethod())) {
-            return 'GET';
-        }*/
-
         return $request->getMethod();
     }
 
