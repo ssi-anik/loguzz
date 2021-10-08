@@ -8,6 +8,8 @@ use Psr\Http\Message\ResponseInterface;
 
 abstract class AbstractResponseFormatter
 {
+    abstract public function format(RequestInterface $request, ResponseInterface $response, array $options = []);
+
     protected function parseData(RequestInterface $request, ResponseInterface $response, array $options): array
     {
         return [
@@ -78,6 +80,4 @@ abstract class AbstractResponseFormatter
 
         return $body->getContents();
     }
-
-    abstract public function format(RequestInterface $request, ResponseInterface $response, array $options = []);
 }

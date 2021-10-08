@@ -41,7 +41,6 @@ class MiddlewareTestCase extends LoguzzTestCase
         $requestOptions = [],
         $clientOptions = []
     ): ObjectFactory {
-
         $dto = new ObjectFactory();
 
         $dto->logger = $this->getLogger();

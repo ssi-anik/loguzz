@@ -7,6 +7,8 @@ use Psr\Http\Message\RequestInterface;
 
 abstract class AbstractRequestFormatter
 {
+    abstract public function format(RequestInterface $request, array $options = []);
+
     protected function parseData(RequestInterface $request, array $options): array
     {
         return [
@@ -62,7 +64,7 @@ abstract class AbstractRequestFormatter
                 continue;
             }
 
-            foreach ((array) $header as $headerValue) {
+            foreach ((array)$header as $headerValue) {
                 $headers[$name][] = $headerValue;
             }
         }
@@ -72,13 +74,11 @@ abstract class AbstractRequestFormatter
 
     final protected function getUrl(RequestInterface $request): string
     {
-        return (string) $request->getUri()->withFragment('');
+        return (string)$request->getUri()->withFragment('');
     }
 
     final protected function getUserAgent(RequestInterface $request): string
     {
         return $request->getHeader('user-agent')[0] ?? '';
     }
-
-    abstract public function format(RequestInterface $request, array $options = []);
 }

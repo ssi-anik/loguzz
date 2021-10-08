@@ -7,6 +7,8 @@ use Psr\Http\Message\RequestInterface;
 
 abstract class AbstractExceptionFormatter
 {
+    abstract public function format(RequestInterface $request, Exception $e, array $options = []);
+
     protected function parseData(RequestInterface $request, Exception $e, array $options): array
     {
         return [
@@ -36,6 +38,4 @@ abstract class AbstractExceptionFormatter
     {
         return $e->getMessage();
     }
-
-    abstract public function format(RequestInterface $request, Exception $e, array $options = []);
 }

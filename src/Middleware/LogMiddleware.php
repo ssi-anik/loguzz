@@ -26,19 +26,38 @@ class LogMiddleware
         $this->options = $options;
     }
 
+    public function __invoke(callable $handler): Closure
+    {
+        return function (RequestInterface $request, array $options) use ($handler) {
+            if ($this->logRequest()) {
+                $output = $this->formatWithTag($this->getRequestFormatter()->format($request, $options), 'request');
+                $this->logger->{$this->getLogLevel()}($output);
+            }
+
+            if ($this->logResponse()) {
+                return $handler($request, $options)->then(
+                    $this->handleSuccess($request, $options),
+                    $this->handleFailure($request, $options)
+                );
+            }
+
+            return $handler($request, $options);
+        };
+    }
+
     private function logExceptionOnly(): bool
     {
-        return isset($this->options['exceptions_only']) ? (bool) $this->options['exceptions_only'] : false;
+        return isset($this->options['exceptions_only']) ? (bool)$this->options['exceptions_only'] : false;
     }
 
     private function logSuccessOnly(): bool
     {
-        return isset($this->options['success_only']) ? (bool) $this->options['success_only'] : false;
+        return isset($this->options['success_only']) ? (bool)$this->options['success_only'] : false;
     }
 
     private function logRequest(): bool
     {
-        return isset($this->options['log_request']) ? (bool) $this->options['log_request'] : true;
+        return isset($this->options['log_request']) ? (bool)$this->options['log_request'] : true;
     }
 
     private function getDefaultRequestFormatter(): AbstractRequestFormatter
@@ -60,7 +79,7 @@ class LogMiddleware
 
     private function logResponse(): bool
     {
-        return isset($this->options['log_response']) ? (bool) $this->options['log_response'] : true;
+        return isset($this->options['log_response']) ? (bool)$this->options['log_response'] : true;
     }
 
     private function getDefaultResponseFormatter(): ResponseJsonFormatter
@@ -100,12 +119,12 @@ class LogMiddleware
 
     private function forceToJson(): bool
     {
-        return isset($this->options['force_json']) ? (bool) $this->options['force_json'] : true;
+        return isset($this->options['force_json']) ? (bool)$this->options['force_json'] : true;
     }
 
     private function shouldSeparate(): bool
     {
-        return isset($this->options['separate']) ? (bool) $this->options['separate'] : false;
+        return isset($this->options['separate']) ? (bool)$this->options['separate'] : false;
     }
 
     private function formatWithTag($loggable, $type)
@@ -119,25 +138,6 @@ class LogMiddleware
         }
 
         return $loggable;
-    }
-
-    public function __invoke(callable $handler): Closure
-    {
-        return function (RequestInterface $request, array $options) use ($handler) {
-            if ($this->logRequest()) {
-                $output = $this->formatWithTag($this->getRequestFormatter()->format($request, $options), 'request');
-                $this->logger->{$this->getLogLevel()}($output);
-            }
-
-            if ($this->logResponse()) {
-                return $handler($request, $options)->then(
-                    $this->handleSuccess($request, $options),
-                    $this->handleFailure($request, $options)
-                );
-            }
-
-            return $handler($request, $options);
-        };
     }
 
     /**

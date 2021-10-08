@@ -6,11 +6,6 @@ use Loguzz\Test\Formatter\Request\RequestFormatterTest;
 
 class RequestArrayFormatterTest extends RequestFormatterTest
 {
-    protected function getFormatter(): AbstractRequestFormatter
-    {
-        return new RequestArrayFormatter();
-    }
-
     public function implementAssertionForUserAgent($response)
     {
         $this->assertArrayHasKey("user-agent", $response);
@@ -124,5 +119,10 @@ class RequestArrayFormatterTest extends RequestFormatterTest
         foreach ($keys as $key) {
             $this->assertArrayHasKey($key, $response['cookies'][0]);
         }
+    }
+
+    protected function getFormatter(): AbstractRequestFormatter
+    {
+        return new RequestArrayFormatter();
     }
 }

@@ -36,11 +36,24 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         $this->commandLineLength = $commandLineLength;
     }
 
+    public function format(RequestInterface $request, array $options = []): string
+    {
+        $this->command = 'curl';
+        $this->currentLineLength = strlen($this->command);
+        $this->options = [];
+
+        $this->prepareCurlOptions($this->parseData($request, $options));
+
+        $this->generateCurlCommand();
+
+        return $this->command;
+    }
+
     protected function addOption($name, $value = null): void
     {
         if (isset($this->options[$name])) {
             if (!is_array($this->options[$name])) {
-                $this->options[$name] = (array) $this->options[$name];
+                $this->options[$name] = (array)$this->options[$name];
             }
 
             $this->options[$name][] = $value;
@@ -106,9 +119,20 @@ class RequestCurlFormatter extends AbstractRequestFormatter
             return;
         }
 
-        $this->addOption('-cookie', escapeshellarg(implode('; ', array_map(function ($cookie) {
-            return sprintf('%s=%s', $cookie['name'], $cookie['value']);
-        }, $cookies))));
+        $this->addOption(
+            '-cookie',
+            escapeshellarg(
+                implode(
+                    '; ',
+                    array_map(
+                        function ($cookie) {
+                            return sprintf('%s=%s', $cookie['name'], $cookie['value']);
+                        },
+                        $cookies
+                    )
+                )
+            )
+        );
     }
 
     private function includeUserAgent($userAgent): void
@@ -127,7 +151,7 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         }
 
         foreach ($headers as $name => $value) {
-            foreach ((array) $value as $subValue) {
+            foreach ((array)$value as $subValue) {
                 $this->addOption('H', escapeshellarg("{$name}: {$subValue}"));
             }
         }
@@ -135,29 +159,16 @@ class RequestCurlFormatter extends AbstractRequestFormatter
 
     private function includeUrl($url): void
     {
-        $this->addOption('-url', escapeshellarg((string) $url));
+        $this->addOption('-url', escapeshellarg((string)$url));
     }
 
     private function prepareCurlOptions($data): void
     {
-        $this->includeHttpMethod($data['method'], (bool) strlen($data['body']));
+        $this->includeHttpMethod($data['method'], (bool)strlen($data['body']));
         $this->includeRequestBody($data['body']);
         $this->includeCookies($data['cookies']);
         $this->includeUserAgent($data['user-agent']);
         $this->includeHeaders($data['headers']);
         $this->includeUrl($data['url']);
-    }
-
-    public function format(RequestInterface $request, array $options = []): string
-    {
-        $this->command = 'curl';
-        $this->currentLineLength = strlen($this->command);
-        $this->options = [];
-
-        $this->prepareCurlOptions($this->parseData($request, $options));
-
-        $this->generateCurlCommand();
-
-        return $this->command;
     }
 }
