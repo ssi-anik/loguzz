@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use Loguzz\Middleware\LogMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\Test\TestLogger;
@@ -64,5 +65,13 @@ class LoguzzTestCase extends TestCase
         $headers = $headers + ['user-agent' => self::USER_AGENT,];
 
         return new Request($method, $url, $headers, $body);
+    }
+
+    protected function createResponse(
+        array $headers = [],
+        $status = 200,
+        $body = null
+    ): Response {
+        return new Response($status, $headers, $body);
     }
 }
