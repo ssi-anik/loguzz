@@ -26,6 +26,11 @@
             "src/helpers.php"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Loguzz\\Test\\": "tests/"
+        }
+    },
     "minimum-stability": "dev",
     "prefer-stable": true
 }
