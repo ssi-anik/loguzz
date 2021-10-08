@@ -1,226 +1,134 @@
 <?php
 
-use GuzzleHttp\Cookie\CookieJar;
-use GuzzleHttp\Psr7\Request;
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestCurlFormatter;
-use PHPUnit\Framework\TestCase;
+use Loguzz\Test\Formatter\Request\RequestFormatterTest;
 
-class RequestCurlFormatterTest extends TestCase
+class RequestCurlFormatterTest extends RequestFormatterTest
 {
     /**
-     * @var AbstractRequestFormatter
+     * @var RequestCurlFormatter
      */
     protected $formatter;
 
-    public function setUp(): void
+    public function getFormatter(): AbstractRequestFormatter
     {
-        $this->formatter = new RequestCurlFormatter();
+        return new RequestCurlFormatter();
     }
 
-    private function getRequest($params = []): Request
+    public function implementAssertionForUserAgent($response)
     {
-        $url = 'http://example.local';
-        if (isset($params['url'])) {
-            $url = $params['url'];
-        }
-
-        $headers = [];
-        if (isset($params['headers'])) {
-            $headers = $params['headers'];
-
-            unset($params['headers']);
-        }
-
-        $queries = '';
-        if (isset($params['query'])) {
-            $queries = $params['query'];
-            unset($params);
-        }
-
-        return new Request('GET', $url, $headers, $queries);
+        $this->assertStringContainsString(sprintf("-A '%s'", self::USER_AGENT), $response);
     }
 
-    private function postRequest($params = []): Request
+    public function implementAssertionForRequestMethodIsIncluded($response)
     {
-        $url = '';
-        if (isset($params['url'])) {
-            $url = $params['url'];
-        }
+        $this->assertStringContainsString('-X POST', $response);
+    }
 
-        $headers = [];
-        if (isset($params['headers'])) {
-            $headers = $params['headers'];
-            unset($params['headers']);
-        }
+    public function implementAssertionForHeadersAreIncluded($response)
+    {
+        $this->assertStringContainsString("-H 'foo: bar'", $response);
+    }
 
-        $body = '';
-        if (isset($params['body'])) {
-            $body = $params['body'];
-            unset($params);
-        }
+    public function implementAssertionForSameHeadersWithMultipleValues($response)
+    {
+        $this->assertStringContainsString("-H 'foo: bar'", $response);
+        $this->assertStringContainsString("-H 'foo: baz'", $response);
+    }
 
-        return new Request('POST', $url, $headers, $body);
+    public function implementAssertionForRequestContainingAllHeaders($response)
+    {
+        $this->assertStringContainsString("-H 'foo: bar'", $response);
+        $this->assertStringContainsString("-H 'baz: baz'", $response);
+    }
+
+    public function implementAssertionForGetRequestWithQueryString($response)
+    {
+        $expected = sprintf("curl --url 'http://example.local?foo=bar' -A '%s'", self::USER_AGENT);
+
+        $this->assertEquals($expected, $response);
+    }
+
+    public function implementAssertionForGetRequestWithRequestBody($response)
+    {
+        $this->assertStringContainsString("-d 'foo=bar&hello=world'", $response);
+        $this->assertStringContainsString('-G', $response);
+    }
+
+    public function implementAssertionForPostRequest($response)
+    {
+        $this->assertStringContainsString("-d 'foo=bar&hello=world'", $response);
+        $this->assertStringNotContainsString(" -G ", $response);
+    }
+
+    public function implementAssertionForHeadRequest($response)
+    {
+        $this->assertStringContainsString("--head", $response);
+    }
+
+    public function implementAssertionForOptionsRequest($response)
+    {
+        $this->assertStringContainsString("-X OPTIONS", $response);
+    }
+
+    public function implementAssertionForDeleteRequest($response)
+    {
+        $this->assertStringContainsString("-X DELETE", $response);
+    }
+
+    public function implementAssertionForPutRequest($response)
+    {
+        $this->assertStringContainsString("-d 'foo=bar&hello=world'", $response);
+        $this->assertStringContainsString("-X PUT", $response);
+    }
+
+    public function implementAssertionForPatchRequest($response)
+    {
+        $this->assertStringContainsString("-d 'foo=bar&hello=world'", $response);
+        $this->assertStringContainsString("-X PATCH", $response);
+    }
+
+    public function implementAssertionForProperBodyReading($response, $originalContent)
+    {
+        $this->assertStringContainsString(sprintf("-d '%s'", $originalContent), $response);
+        $this->assertStringContainsString("-X PUT", $response);
+    }
+
+    public function implementAssertionForExtractBodyArgument($response)
+    {
+        $this->assertStringContainsString('foo=bar&hello=world', $response);
+    }
+
+    public function implementAssertionForCookieIsParsedFromRequest($response)
+    {
+        $this->assertStringContainsString("-cookie 'cookie-name=cookie-value'", $response);
     }
 
     public function testMultiLineDisabled()
     {
         $this->formatter->setCommandLineLength(10);
+        $response = $this->formatter->format($this->createRequest('get', '/', '', ['foo' => 'bar']));
 
-        $result = $this->formatter->format($this->getRequest(['headers' => ['foo' => 'bar']]));
-
-        $this->assertEquals(substr_count($result, "\n"), 2);
+        $this->assertEquals(3, substr_count($response, "\n"));
     }
 
-    public function testSkipHostInHeaders()
+    public function testDoesNotIncludeEmptyValue()
     {
-        $result = $this->formatter->format($this->getRequest());
+        $this->formatter->setCommandLineLength(10);
+        // User agent is empty, so it should not be included
+        $response = $this->formatter->format(
+            $this->createRequest('get', '/', '', ['user-agent' => '', 'foo' => 'bar'])
+        );
 
-        $this->assertEquals("curl --url 'http://example.local'", $result);
+        $this->assertEquals(2, substr_count($response, "\n"));
     }
 
-    public function testSimpleGet()
+    public function testBasicCurlRequest()
     {
-        $result = $this->formatter->format($this->getRequest());
+        $response = $this->formatter->format($this->createRequest('get', 'http://example.local'));
+        $expected = sprintf("curl --url 'http://example.local' -A '%s'", self::USER_AGENT);
 
-        $this->assertEquals("curl --url 'http://example.local'", $result);
-    }
-
-    public function testSimpleGetWithHeader()
-    {
-        $result = $this->formatter->format($this->getRequest(['headers' => ['foo' => 'bar']]));
-
-        $this->assertEquals("curl --url 'http://example.local' -H 'foo: bar'", $result);
-    }
-
-    public function testMultipleHeadersWithSameName()
-    {
-        $result = $this->formatter->format($this->getRequest(['headers' => ['foo' => ['bar', 'baz']]]));
-
-        $this->assertEquals("curl --url 'http://example.local' -H 'foo: bar' -H 'foo: baz'", $result);
-    }
-
-    public function testSimpleGetWithMultipleHeaders()
-    {
-        $result = $this->formatter->format($this->getRequest([
-            'headers' => [
-                'foo' => 'bar',
-                'Accept-Encoding' => 'gzip,deflate,sdch',
-            ],
-        ]));
-
-        $expected = "curl --url 'http://example.local' -H 'foo: bar' -H 'Accept-Encoding: gzip,deflate,sdch'";
-        $this->assertEquals($expected, $result);
-    }
-
-    public function testGetWithQueryString()
-    {
-        $result = $this->formatter->format($this->getRequest([
-            'url' => 'http://example.local?foo=bar',
-        ]));
-
-        $this->assertEquals("curl --url 'http://example.local?foo=bar'", $result);
-
-        $body = http_build_query(['foo' => 'bar', 'hello' => 'world']);
-
-        $result = $this->formatter->format($this->getRequest([
-            'query' => $body,
-        ]));
-
-        $this->assertEquals("curl --url 'http://example.local' -G -d 'foo=bar&hello=world'", $result);
-    }
-
-    public function testPostRequest()
-    {
-        $body = http_build_query(['foo' => 'bar', 'hello' => 'world']);
-
-        $result = $this->formatter->format($this->postRequest([
-            'body' => $body,
-        ]));
-
-        $this->assertStringContainsString("-d 'foo=bar&hello=world'", $result);
-        $this->assertStringNotContainsString(" -G ", $result);
-    }
-
-    public function testHeadRequest()
-    {
-        $request = new Request('HEAD', 'http://example.local');
-        $result = $this->formatter->format($request);
-
-        $this->assertStringContainsString("--head", $result);
-    }
-
-    public function testOptionsRequest()
-    {
-        $request = new Request('OPTIONS', 'http://example.local');
-        $result = $this->formatter->format($request);
-
-        $this->assertStringContainsString("-X OPTIONS", $result);
-    }
-
-    public function testDeleteRequest()
-    {
-        $request = new Request('DELETE', 'http://example.local/users/4');
-        $result = $this->formatter->format($request);
-
-        $this->assertStringContainsString("-X DELETE", $result);
-    }
-
-    public function testPutRequest()
-    {
-        $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
-        $result = $this->formatter->format($request);
-
-        $this->assertStringContainsString("-d 'foo=bar&hello=world'", $result);
-        $this->assertStringContainsString("-X PUT", $result);
-    }
-
-    public function testUserAgent()
-    {
-        $agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) Chrome/80.0.3987.149 Safari/537.36';
-        $result = $this->formatter->format($this->getRequest([
-            'headers' => [
-                'user-agent' => $agent,
-            ],
-        ]));
-
-        $this->assertStringContainsString("-A '$agent'", $result);
-    }
-
-    public function testProperBodyReading()
-    {
-        $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
-        $request->getBody()->getContents();
-
-        $result = $this->formatter->format($request);
-
-        $this->assertStringContainsString("-d 'foo=bar&hello=world'", $result);
-        $this->assertStringContainsString("-X PUT", $result);
-    }
-
-    public function testExtractBodyArgument()
-    {
-        $headers = ['X-Foo' => 'Bar'];
-        $body = chr(0) . 'foo=bar&hello=world';
-
-        // clean input of null bytes
-        $body = str_replace(chr(0), '', $body);
-        $request = new Request('POST', 'http://example.local', $headers, $body);
-
-        $result = $this->formatter->format($request);
-
-        $this->assertStringContainsString('foo=bar&hello=world', $result);
-    }
-
-    public function testExtractCookieArgument()
-    {
-        $request = new Request('GET', 'http://example.local', [], 'foo=bar&hello=world');
-        $request->getBody()->getContents();
-
-        $result = $this->formatter->format($request, [
-            'cookies' => CookieJar::fromArray(['cookie-name' => 'cookie-value'], 'example.local'),
-        ]);
-
-        $this->assertStringContainsString("-cookie 'cookie-name=cookie-value'", $result);
+        $this->assertEquals($expected, $response);
     }
 }

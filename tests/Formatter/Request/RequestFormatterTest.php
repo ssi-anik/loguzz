@@ -42,12 +42,13 @@ abstract class RequestFormatterTest extends FormatterTestCase
     public function testUserAgent()
     {
         $response = $this->formatter->format($this->createRequest());
+
         $this->implementAssertionForUserAgent($response);
     }
 
     public function testRequestMethodIsIncluded()
     {
-        $response = $this->formatter->format($this->createRequest());
+        $response = $this->formatter->format($this->createRequest('POST'));
 
         $this->implementAssertionForRequestMethodIsIncluded($response);
     }
@@ -84,7 +85,7 @@ abstract class RequestFormatterTest extends FormatterTestCase
     public function testGetRequestWithRequestBody()
     {
         $body = http_build_query(['foo' => 'bar', 'hello' => 'world']);
-        $response = $this->formatter->format($this->createRequest('get', '/', $body));
+        $response = $this->formatter->format($this->createRequest('get', sprintf('%s/', self::BASE_URI), $body));
 
         $this->implementAssertionForGetRequestWithRequestBody($response);
     }
