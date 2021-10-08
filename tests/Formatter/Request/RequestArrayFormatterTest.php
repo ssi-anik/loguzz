@@ -1,183 +1,131 @@
 <?php
 
 use GuzzleHttp\Cookie\CookieJar;
-use GuzzleHttp\Psr7\Request;
-use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestArrayFormatter;
-use PHPUnit\Framework\TestCase;
+use Loguzz\Test\FormatterTestCase;
 
-class RequestArrayFormatterTest extends TestCase
+class RequestArrayFormatterTest extends FormatterTestCase
 {
-    static $USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36";
-
     /**
-     * @var AbstractRequestFormatter
+     * @var RequestArrayFormatter
      */
     protected $formatter;
 
-    public function setUp(): void
+    protected function getFormatter(): RequestArrayFormatter
     {
-        $this->formatter = new RequestArrayFormatter();
-    }
-
-    private function getRequest($params = []): Request
-    {
-        $url = 'http://example.local';
-        if (isset($params['url'])) {
-            $url = $params['url'];
-        }
-
-        $headers = [
-            'user-agent' => static::$USER_AGENT,
-        ];
-        if (isset($params['headers'])) {
-            $headers = $params['headers'];
-            unset($params['headers']);
-        }
-
-        $queries = '';
-        if (isset($params['query'])) {
-            $queries = $params['query'];
-            unset($params);
-        }
-
-        return new Request('GET', $url, $headers, $queries);
-    }
-
-    private function postRequest($params = []): Request
-    {
-        $url = '';
-        if (isset($params['url'])) {
-            $url = $params['url'];
-        }
-
-        $headers = [
-            'user-agent' => static::$USER_AGENT,
-        ];
-        if (isset($params['headers'])) {
-            $headers = $params['headers'];
-            unset($params['headers']);
-        }
-
-        $body = '';
-        if (isset($params['body'])) {
-            $body = $params['body'];
-            unset($params);
-        }
-
-        return new Request('POST', $url, $headers, $body);
+        return new RequestArrayFormatter();
     }
 
     public function testUserAgent()
     {
-        $curl = $this->formatter->format($this->getRequest());
+        $response = $this->formatter->format($this->createRequest());
 
-        $this->assertArrayHasKey("user-agent", $curl);
-        $this->assertEquals(static::$USER_AGENT, $curl['user-agent']);
+        $this->assertArrayHasKey("user-agent", $response);
+        $this->assertEquals(self::USER_AGENT, $response['user-agent']);
     }
 
-    public function testSimpleGet()
+    public function testRequestMethodIsIncluded()
     {
-        $curl = $this->formatter->format($this->getRequest());
+        $response = $this->formatter->format($this->createRequest());
 
-        $this->assertArrayHasKey("method", $curl);
+        $this->assertArrayHasKey("method", $response);
     }
 
-    public function testSimpleGetWithHeader()
+    public function testHeadersAreIncluded()
     {
-        $curl = $this->formatter->format($this->getRequest([
-            'headers' => ['foo' => 'bar'],
-        ]));
+        $response = $this->formatter->format($this->createRequest('GET', '/', '', ['foo' => 'bar']));
 
-        $this->assertArrayHasKey("headers", $curl);
-        $this->assertArrayHasKey("foo", $curl['headers']);
-        $this->assertEquals(["bar"], $curl['headers']['foo']);
+        $this->assertArrayHasKey("headers", $response);
+        $this->assertArrayHasKey("foo", $response['headers']);
+        $this->assertEquals(["bar"], $response['headers']['foo']);
     }
 
-    public function testSimpleGetWithMultipleHeaders()
+    public function testSameHeadersWithMultipleValues()
     {
-        $curl = $this->formatter->format($this->getRequest([
-            'headers' => [
-                'foo' => 'bar',
-                'Accept-Encoding' => 'gzip,deflate,sdch',
-            ],
-        ]));
+        $response = $this->formatter->format($this->createRequest('GET', '/', '', ['foo' => ['bar', 'baz']]));
 
-        $this->assertArrayHasKey("headers", $curl);
-        $this->assertEquals(["bar"], $curl['headers']['foo']);
-        $this->assertEquals(["gzip,deflate,sdch"], $curl['headers']['Accept-Encoding']);
+        $this->assertEquals(["bar", "baz"], $response['headers']['foo']);
     }
 
-    public function testGetWithQueryString()
+    public function testRequestContainsAllHeaders()
     {
-        $curl = $this->formatter->format($this->getRequest(['url' => 'http://example.local?foo=bar']));
+        $headers = ['foo' => 'bar', 'baz' => 'baz',];
+        $response = $this->formatter->format($this->createRequest('get', '/', '', $headers));
 
-        $this->assertArrayHasKey('url', $curl);
-        $this->stringContains('foo=bar', $curl['url']);
+        $this->assertArrayHasKey("headers", $response);
+        $this->assertEquals(["bar"], $response['headers']['foo']);
+        $this->assertEquals(["baz"], $response['headers']['baz']);
+    }
 
+    public function testGetRequestWithQueryString()
+    {
+        $response = $this->formatter->format($this->createRequest('get', 'http://example.local?foo=bar'));
+
+        $this->assertArrayHasKey('url', $response);
+        $this->stringContains('foo=bar', $response['url']);
+    }
+
+    public function testGetRequestWithRequestBody()
+    {
         $body = http_build_query(['foo' => 'bar', 'hello' => 'world']);
-        $curl = $this->formatter->format($this->getRequest(['query' => $body]));
+        $response = $this->formatter->format($this->createRequest('get', '/', $body));
 
-        $this->assertEquals('GET', $curl['method']);
-        $this->assertArrayHasKey('body', $curl);
-        $this->assertEquals('foo=bar&hello=world', $curl['body']);
+        $this->assertEquals('GET', $response['method']);
+        $this->assertArrayHasKey('body', $response);
+        $this->assertEquals('foo=bar&hello=world', $response['body']);
     }
 
     public function testPostRequest()
     {
         $body = http_build_query(['foo' => 'bar', 'hello' => 'world']);
-        $curl = $this->formatter->format($this->postRequest(['body' => $body]));
+        $response = $this->formatter->format($this->createRequest('post', '/', $body));
 
-        $this->assertEquals('POST', $curl['method']);
-        $this->assertNotEquals('GET', $curl['method']);
-        $this->assertArrayHasKey('body', $curl);
-        $this->assertEquals('foo=bar&hello=world', $curl['body']);
+        $this->assertEquals('POST', $response['method']);
+        $this->assertNotEquals('GET', $response['method']);
+        $this->assertArrayHasKey('body', $response);
+        $this->assertEquals('foo=bar&hello=world', $response['body']);
     }
 
     public function testHeadRequest()
     {
-        $request = new Request('HEAD', 'http://example.local');
-        $curl = $this->formatter->format($request);
+        $response = $this->formatter->format($this->createRequest('HEAD'));
 
-        $this->assertEquals('HEAD', $curl['method']);
+        $this->assertEquals('HEAD', $response['method']);
     }
 
     public function testOptionsRequest()
     {
-        $request = new Request('OPTIONS', 'http://example.local');
-        $curl = $this->formatter->format($request);
+        $response = $this->formatter->format($this->createRequest('OPTIONS'));
 
-        $this->assertEquals('OPTIONS', $curl['method']);
+        $this->assertEquals('OPTIONS', $response['method']);
     }
 
     public function testDeleteRequest()
     {
-        $request = new Request('DELETE', 'http://example.local/users/4');
-        $curl = $this->formatter->format($request);
+        $response = $this->formatter->format($this->createRequest('DELETE'));
 
-        $this->assertEquals('DELETE', $curl['method']);
+        $this->assertEquals('DELETE', $response['method']);
     }
 
     public function testPutRequest()
     {
-        $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
-        $curl = $this->formatter->format($request);
+        $response = $this->formatter->format($this->createRequest('PUT', '/', 'foo=bar&hello=world'));
 
-        $this->assertEquals('PUT', $curl['method']);
-        $this->assertArrayHasKey('body', $curl);
-        $this->assertEquals('foo=bar&hello=world', $curl['body']);
+        $this->assertEquals('PUT', $response['method']);
+        $this->assertArrayHasKey('body', $response);
+        $this->assertEquals('foo=bar&hello=world', $response['body']);
     }
 
     public function testProperBodyReading()
     {
-        $request = new Request('PUT', 'http://example.local', [], 'foo=bar&hello=world');
+        $request = $this->createRequest('PUT', '/', 'foo=bar&hello=world');
         $content = $request->getBody()->getContents();
 
-        $curl = $this->formatter->format($request);
+        $response = $this->formatter->format($request);
 
-        $this->assertEquals($content, $curl['body']);
-        $this->assertEquals('foo=bar&hello=world', $curl['body']);
-        $this->assertEquals("PUT", $curl['method']);
+        $this->assertEquals($content, $response['body']);
+        $this->assertEquals('foo=bar&hello=world', $response['body']);
+        $this->assertEquals("PUT", $response['method']);
     }
 
     public function testExtractBodyArgument()
@@ -186,23 +134,27 @@ class RequestArrayFormatterTest extends TestCase
         $body = chr(0) . 'foo=bar&hello=world';
         // clean input of null bytes
         $body = str_replace(chr(0), '', $body);
-        $request = new Request('POST', 'http://example.local', $headers, $body);
-        $curl = $this->formatter->format($request);
+        $request = $this->createRequest('post', '/', $body, $headers);
+        $response = $this->formatter->format($request);
 
-        $this->assertEquals('foo=bar&hello=world', $curl['body']);
+        $this->assertEquals('foo=bar&hello=world', $response['body']);
     }
 
     public function testCookieIsParsedFromRequest()
     {
-        $request = new Request('GET', 'http://example.local', [], 'foo=bar&hello=world');
-        $curl = $this->formatter->format($request, [
-            'cookies' => CookieJar::fromArray(['cookie-name' => 'cookie-value'], 'example.local'),
-        ]);
+        $request = $this->createRequest('GET', '/', 'foo=bar&hello=world');
 
-        $this->assertArrayHasKey('cookies', $curl);
-        $this->assertCount(1, $curl['cookies']);
-        $this->assertEquals('cookie-name', $curl['cookies'][0]['name']);
-        $this->assertEquals('cookie-value', $curl['cookies'][0]['value']);
+        $response = $this->formatter->format(
+            $request,
+            [
+                'cookies' => CookieJar::fromArray(['cookie-name' => 'cookie-value'], self::BASE_URI),
+            ]
+        );
+
+        $this->assertArrayHasKey('cookies', $response);
+        $this->assertCount(1, $response['cookies']);
+        $this->assertEquals('cookie-name', $response['cookies'][0]['name']);
+        $this->assertEquals('cookie-value', $response['cookies'][0]['value']);
 
         $keys = [
             'name',
@@ -216,7 +168,7 @@ class RequestArrayFormatterTest extends TestCase
             'httponly',
         ];
         foreach ($keys as $key) {
-            $this->assertArrayHasKey($key, $curl['cookies'][0]);
+            $this->assertArrayHasKey($key, $response['cookies'][0]);
         }
     }
 }

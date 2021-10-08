@@ -13,6 +13,7 @@ use Psr\Log\Test\TestLogger;
 class LoguzzTestCase extends TestCase
 {
     public const USER_AGENT = 'anik/loguzz guzzle-log-middleware';
+    public const BASE_URI = 'https://example.local';
     protected $logger;
 
     protected function setUp(): void
@@ -35,7 +36,7 @@ class LoguzzTestCase extends TestCase
             $handler->push($logMiddleware, 'logger');
         }
 
-        $options = $options + ['base_uri' => 'https://example.local', 'handler' => $handler,];
+        $options = $options + ['base_uri' => self::BASE_URI, 'handler' => $handler,];
 
         return new Client($options);
     }
