@@ -90,7 +90,7 @@ class LogMiddleware
 
     private function getLogLevel(): string
     {
-        return isset($this->options['log_level']) ? $this->options['log_level'] : 'info';
+        return isset($this->options['log_level']) ? $this->options['log_level'] : 'debug';
     }
 
     private function getLogTag(): string
