@@ -21,7 +21,10 @@
     "autoload": {
         "psr-4": {
             "Loguzz\\": "src/"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "minimum-stability": "dev",
     "prefer-stable": true

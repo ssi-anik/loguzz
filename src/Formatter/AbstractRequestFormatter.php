@@ -50,19 +50,9 @@ abstract class AbstractRequestFormatter
 
     final protected function getCookie(RequestInterface $request, array $options): array
     {
-        return array_map(function ($cookie) {
-            return [
-                'name' => $cookie['Name'] ?? null,
-                'value' => $cookie['Value'] ?? null,
-                'domain' => $cookie['Domain'] ?? null,
-                'path' => $cookie['Path'] ?? '/',
-                'max-age' => $cookie['Max-age'] ?? null,
-                'expires' => $cookie['Expires'] ?? null,
-                'secure' => $cookie['Secure'] ?? false,
-                'discard' => $cookie['Discard'] ?? false,
-                'httponly' => $cookie['Httponly'] ?? false,
-            ];
-        }, ($options['cookies'] ?? false) instanceof CookieJarInterface ? $options['cookies']->toArray() : []);
+        $cookies = ($options['cookies'] ?? false) instanceof CookieJarInterface ? $options['cookies']->toArray() : [];
+
+        return cookie_formatter($cookies);
     }
 
     final protected function getRequestHeaders(RequestInterface $request): array
