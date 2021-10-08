@@ -37,6 +37,7 @@ jobs:
                 run: ./vendor/bin/phpunit --testdox --verbose
 
     coverage:
+        needs: tests
         name: Coverage
         runs-on: ubuntu-latest
 
