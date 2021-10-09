@@ -63,6 +63,7 @@ class LogMiddleware
     private function getDefaultRequestFormatter(): AbstractRequestFormatter
     {
         $length = isset($this->options['length']) ? $this->options['length'] : 100;
+        $length = $length < 10 ? 100 : $length;
 
         return new RequestCurlFormatter($length);
     }

@@ -113,6 +113,17 @@ class RequestCurlFormatterTest extends RequestFormatterTest
         $this->assertEquals(3, substr_count($response, "\n"));
     }
 
+    public function testMinimumLineLength()
+    {
+        $this->formatter->setCommandLineLength(-10);
+        // User agent is empty, so it should not be included
+        $response = $this->formatter->format(
+            $this->createRequest('get', '/', '', ['user-agent' => '', 'foo' => 'bar'])
+        );
+
+        $this->assertEquals(0, substr_count($response, "\n"));
+    }
+
     public function testDoesNotIncludeEmptyValue()
     {
         $this->formatter->setCommandLineLength(10);
