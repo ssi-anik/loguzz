@@ -1,4 +1,8 @@
-# Loguzz
+Loguzz
+[![codecov](https://codecov.io/gh/ssi-anik/loguzz/branch/master/graph/badge.svg?token=L35HVDZ91V)](https://codecov.io/gh/ssi-anik/loguzz)
+[![Total Downloads](https://poser.pugx.org/anik/loguzz/downloads)](//packagist.org/packages/anik/loguzz)
+[![Latest Stable Version](https://poser.pugx.org/anik/loguzz/v)](//packagist.org/packages/anik/loguzz)
+==============
 
 Loguzz is a middleware for [Guzzle](https://github.com/guzzle/guzzle) which logs requests and responses.
 
