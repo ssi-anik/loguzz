@@ -1,6 +1,7 @@
 <?php
 
 use GuzzleHttp\Exception\ConnectException;
+use Loguzz\Formatter\ExceptionArrayFormatter;
 use Loguzz\Formatter\RequestJsonFormatter;
 use Loguzz\Formatter\ResponseArrayFormatter;
 use Loguzz\Test\MiddlewareTestCase;
@@ -89,6 +90,23 @@ class LogMiddlewareTest extends MiddlewareTestCase
 
         $this->assertStringContainsString('{"custom.tag.request":', $dto->logger->records[0]['message']);
         $this->assertStringContainsString('{"custom.tag.failure":', $dto->logger->records[1]['message']);
+    }
+
+    public function testCustomExceptionFormatter()
+    {
+        $response = new ConnectException('Cannot connect to the host', $this->createRequest());
+        $dto = $this->objectFactory(
+            ['exception_formatter' => new ExceptionArrayFormatter(), 'tag' => 'custom.tag', 'separate' => true],
+            $response
+        );
+
+        try {
+            $dto->client->send($dto->request);
+        } catch (Exception $e) {
+        }
+
+        // double quotes are not escaped meaning the inside data is not JSON.
+        $this->assertStringNotContainsString('\"', $dto->logger->records[1]['message']);
     }
 
     public function testWhenTaggingItShouldLogAsJsonByDefault()

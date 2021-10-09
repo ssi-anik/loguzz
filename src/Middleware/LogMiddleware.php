@@ -105,7 +105,12 @@ class LogMiddleware
 
     private function getExceptionFormatter(): AbstractExceptionFormatter
     {
-        return $this->getDefaultExceptionFormatter();
+        $formatter = null;
+        if (isset($this->options['exception_formatter'])) {
+            $formatter = $this->options['exception_formatter'];
+        }
+
+        return $formatter instanceof AbstractExceptionFormatter ? $formatter : $this->getDefaultExceptionFormatter();
     }
 
     private function getLogLevel(): string
