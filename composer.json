@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=7.1",
-        "guzzlehttp/guzzle": "^6.2",
+        "guzzlehttp/guzzle": "^6.2|^7.1",
         "psr/log": "^1.0"
     },
     "require-dev": {
@@ -21,7 +21,16 @@
     "autoload": {
         "psr-4": {
             "Loguzz\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Loguzz\\Test\\": "tests/"
         }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

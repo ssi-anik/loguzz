@@ -2,92 +2,82 @@
 
 namespace Loguzz\Formatter;
 
+use GuzzleHttp\Cookie\CookieJar;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 abstract class AbstractResponseFormatter
 {
-    protected $options = [];
+    abstract public function format(RequestInterface $request, ResponseInterface $response, array $options = []);
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     * @param array                               $options
-     */
-    protected function extractArguments (ResponseInterface $response, array $options) {
-        $this->extractProtocol($response);
-        $this->extractReasonPhrase($response);
-        $this->extractStatusCode($response);
-        $this->extractHeaders($response);
-        $this->extractBodySize($response);
-        $this->extractBody($response);
+    protected function parseData(RequestInterface $request, ResponseInterface $response, array $options): array
+    {
+        return [
+            'protocol' => $this->getProtocol($response),
+            'reason_phrase' => $this->getReasonPhrase($response),
+            'status_code' => $this->getStatusCode($response),
+            'cookies' => $this->getCookies($request, $response),
+            'headers' => $this->getResponseHeaders($response),
+            'size' => $this->getResponseBodySize($response),
+            'body' => $this->getResponseBody($response),
+        ];
     }
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractBodySize (ResponseInterface $response) {
-        $this->options['size'] = $response->getBody()->getSize();
+    final protected function getProtocol(ResponseInterface $response): string
+    {
+        return $response->getProtocolVersion();
     }
 
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractBody (ResponseInterface $response) {
-        $body = $response->getBody();
+    final protected function getReasonPhrase(ResponseInterface $response): string
+    {
+        return $response->getReasonPhrase();
+    }
+
+    final protected function getStatusCode(ResponseInterface $response): int
+    {
+        return $response->getStatusCode();
+    }
+
+    final protected function getCookies(RequestInterface $request, ResponseInterface $response): array
+    {
+        $cookieJar = new CookieJar();
+        $cookieJar->extractCookies(clone $request, clone $response);
+
+        return cookie_formatter($cookieJar->toArray());
+    }
+
+    final protected function getResponseHeaders(ResponseInterface $response): array
+    {
+        $headers = [];
+        $excludeHeaders = ['set-cookie'];
+        foreach ($response->getHeaders() as $name => $value) {
+            if (in_array(strtolower($name), $excludeHeaders)) {
+                continue;
+            }
+
+            $headers[$name] = $value;
+        }
+
+        return $headers;
+    }
+
+    final protected function getResponseBodySize(ResponseInterface $response): ?int
+    {
+        return $response->getBody()->getSize();
+    }
+
+    final protected function getResponseBody(ResponseInterface $response): string
+    {
+        // response is cloned to avoid any accidental data damage
+        $body = (clone $response)->getBody();
         if (!$body->isReadable()) {
-            $this->options['body'] = '';
-
-            return;
+            return '';
         }
 
         if ($body->isSeekable()) {
-            $previousPosition = $body->tell();
             $body->rewind();
         }
 
-        $contents = $body->getContents();
-
-        if ($body->isSeekable()) {
-            $body->seek($previousPosition);
-        }
-
-        if ($contents) {
-            $this->options['body'] = $contents;
-        }
+        return $body->getContents();
     }
-
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractReasonPhrase (ResponseInterface $response) {
-        $this->options['reason_phrase'] = $response->getReasonPhrase();
-    }
-
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractStatusCode (ResponseInterface $response) {
-        $this->options['status_code'] = $response->getStatusCode();
-    }
-
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractProtocol (ResponseInterface $response) {
-        $this->options['protocol'] = $response->getProtocolVersion();
-    }
-
-    /**
-     * @param \Psr\Http\Message\ResponseInterface $response
-     */
-    private function extractHeaders (ResponseInterface $response) {
-        $this->options['headers'] = $response->getHeaders();
-    }
-
-    /**
-     * @param ResponseInterface $response
-     * @param array             $options
-     *
-     * @return string | array
-     */
-    abstract public function format (ResponseInterface $response, array $options = []);
 }

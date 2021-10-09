@@ -19,66 +19,51 @@ class RequestCurlFormatter extends AbstractRequestFormatter
     /**
      * @var string[]
      */
-    protected $format;
+    protected $options;
 
     /**
      * @var int
      */
     protected $commandLineLength;
 
-    /**
-     * @param int $commandLineLength
-     */
-    public function __construct ($commandLineLength = 100) {
+    public function __construct($commandLineLength = 100)
+    {
         $this->commandLineLength = $commandLineLength;
     }
 
-    /**
-     * @param RequestInterface $request
-     * @param array            $options
-     *
-     * @return string
-     */
-    public function format (RequestInterface $request, array $options = []) {
+    public function setCommandLineLength($commandLineLength): void
+    {
+        $this->commandLineLength = $commandLineLength;
+    }
+
+    public function format(RequestInterface $request, array $options = []): string
+    {
         $this->command = 'curl';
         $this->currentLineLength = strlen($this->command);
-        $this->format = [];
+        $this->options = [];
 
-        $this->extractArguments($request, $options);
-        $this->serializeOptions();
-        $this->addOptionsToCommand();
+        $this->prepareCurlOptions($this->parseData($request, $options));
+
+        $this->generateCurlCommand();
 
         return $this->command;
     }
 
-    /**
-     * @param int $commandLineLength
-     */
-    public function setCommandLineLength ($commandLineLength) {
-        $this->commandLineLength = $commandLineLength;
-    }
-
-    /**
-     * @param      $name
-     * @param null $value
-     */
-    protected function addOption ($name, $value = null) {
-        if (isset($this->format[$name])) {
-            if (!is_array($this->format[$name])) {
-                $this->format[$name] = (array) $this->format[$name];
+    protected function addOption($name, $value = null): void
+    {
+        if (isset($this->options[$name])) {
+            if (!is_array($this->options[$name])) {
+                $this->options[$name] = (array)$this->options[$name];
             }
 
-            $this->format[$name][] = $value;
+            $this->options[$name][] = $value;
         } else {
-            $this->format[$name] = $value;
+            $this->options[$name] = $value;
         }
-
     }
 
-    /**
-     * @param $part
-     */
-    protected function addCommandPart ($part) {
+    protected function addToCommand($part): void
+    {
         $this->command .= ' ';
 
         if ($this->commandLineLength > 0 && $this->currentLineLength + strlen($part) > $this->commandLineLength) {
@@ -90,68 +75,100 @@ class RequestCurlFormatter extends AbstractRequestFormatter
         $this->currentLineLength += strlen($part) + 2;
     }
 
-    protected function addOptionsToCommand () {
-        ksort($this->format);
+    protected function generateCurlCommand(): void
+    {
+        ksort($this->options);
 
-        if ($this->format) {
-            foreach ( $this->format as $name => $value ) {
-                if (is_array($value)) {
-                    foreach ( $value as $subValue ) {
-                        $this->addCommandPart("-{$name} {$subValue}");
-                    }
-                } else {
-                    $this->addCommandPart("-{$name} {$value}");
+        foreach ($this->options as $name => $value) {
+            if (is_array($value)) {
+                foreach ($value as $subValue) {
+                    $this->addToCommand("-{$name} {$subValue}");
                 }
-            }
-        }
-    }
-
-    private function serializeOptions () {
-        $this->serializeHttpMethodOption();
-        $this->serializeBodyOption();
-        $this->serializeCookiesOption();
-        $this->serializeHeadersOption();
-        $this->serializeUrlOption();
-    }
-
-    private function serializeHttpMethodOption () {
-        if ('GET' !== $this->options['method']) {
-            if ('HEAD' === $this->options['method']) {
-                $this->addOption('-head');
+            } elseif (empty($value)) {
+                $this->addToCommand("-{$name}");
             } else {
-                $this->addOption('X', $this->options['method']);
+                $this->addToCommand("-{$name} {$value}");
             }
         }
     }
 
-    private function serializeBodyOption () {
-        if (isset($this->options['data'])) {
-            $this->addOption('d', escapeshellarg($this->options['data']));
-            if ('GET' == $this->options['method']) {
-                $this->addOption('G');
+    private function includeHttpMethod($method, $includeGetMethod = false): void
+    {
+        $method = strtoupper($method);
+        if ('HEAD' === $method) {
+            $this->addOption('-head');
+        } elseif ('GET' !== $method) {
+            $this->addOption('X', $method);
+        } elseif ($includeGetMethod) {
+            $this->addOption('G');
+        }
+    }
+
+    private function includeRequestBody($body): void
+    {
+        if (empty($body)) {
+            return;
+        }
+
+        $this->addOption('d', escapeshellarg($body));
+    }
+
+    private function includeCookies($cookies): void
+    {
+        if (empty($cookies)) {
+            return;
+        }
+
+        $this->addOption(
+            '-cookie',
+            escapeshellarg(
+                implode(
+                    '; ',
+                    array_map(
+                        function ($cookie) {
+                            return sprintf('%s=%s', $cookie['name'], $cookie['value']);
+                        },
+                        $cookies
+                    )
+                )
+            )
+        );
+    }
+
+    private function includeUserAgent($userAgent): void
+    {
+        if (empty($userAgent)) {
+            return;
+        }
+
+        $this->addOption('A', escapeshellarg($userAgent));
+    }
+
+    private function includeHeaders($headers): void
+    {
+        if (empty($headers)) {
+            return;
+        }
+
+        foreach ($headers as $name => $value) {
+            foreach ((array)$value as $subValue) {
+                $this->addOption('H', escapeshellarg("{$name}: {$subValue}"));
             }
         }
     }
 
-    private function serializeCookiesOption () {
-        if (isset($this->options['cookies'])) {
-            $this->addOption('b', escapeshellarg(implode('; ', $this->options['cookies'])));
-        }
+    private function includeUrl($url): void
+    {
+        $this->addOption('-url', escapeshellarg((string)$url));
     }
 
-    private function serializeHeadersOption () {
-        if (isset($this->options['user-agent'])) {
-            $this->addOption('A', escapeshellarg($this->options['user-agent']));
-        }
-
-        if (isset($this->options['headers'])) {
-            foreach ( $this->options['headers'] as $name => $value ) {
-                $this->addOption('H', escapeshellarg("{$name}: {$value}"));
-            }
-        }
-    }
-
-    private function serializeUrlOption () {
-        $this->addCommandPart(escapeshellarg((string) $this->options['url']));
+    private function prepareCurlOptions($data): void
+    {
+        $this->includeHttpMethod($data['method'], (bool)strlen($data['body']));
+        $this->includeRequestBody($data['body']);
+        $this->includeCookies($data['cookies']);
+        $this->includeUserAgent($data['user-agent']);
+        $this->includeHeaders($data['headers']);
+        $this->includeUrl($data['url']);
     }
 }

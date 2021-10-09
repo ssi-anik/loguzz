@@ -3,58 +3,39 @@
 namespace Loguzz\Formatter;
 
 use Exception;
-use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\RequestInterface;
 
 abstract class AbstractExceptionFormatter
 {
-    protected $options = [];
+    abstract public function format(RequestInterface $request, Exception $e, array $options = []);
 
-    /**
-     * @param Exception $e
-     * @param array     $options
-     */
-    protected function extractArguments (Exception $e, array $options) {
-        $this->extractExceptionClass($e);
-        $this->extractCode($e);
-        $this->extractMessage($e);
-        if ($e instanceof RequestException) {
-            $this->extractContext($e);
-        }
+    protected function parseData(RequestInterface $request, Exception $e, array $options): array
+    {
+        return [
+            'code' => $this->getCode($e),
+            'message' => $this->getMessage($e),
+            'class' => $this->getExceptionClass($e),
+            'context' => $this->getContext($e),
+        ];
     }
 
-    /**
-     * @param Exception $e
-     */
-    private function extractContext (Exception $e) {
-        $this->options['context'] = $e->getHandlerContext();
+    final protected function getContext(Exception $e): array
+    {
+        return method_exists($e, 'getHandlerContext') ? $e->getHandlerContext() : [];
     }
 
-    /**
-     * @param Exception $e
-     */
-    private function extractExceptionClass (Exception $e) {
-        $this->options['class'] = get_class($e);
+    final protected function getExceptionClass(Exception $e): string
+    {
+        return get_class($e);
     }
 
-    /**
-     * @param Exception $e
-     */
-    private function extractCode (Exception $e) {
-        $this->options['code'] = $e->getCode();
+    final protected function getCode(Exception $e): int
+    {
+        return $e->getCode();
     }
 
-    /**
-     * @param Exception $e
-     */
-    private function extractMessage (Exception $e) {
-        $this->options['message'] = $e->getMessage();
+    final protected function getMessage(Exception $e): string
+    {
+        return $e->getMessage();
     }
-
-    /**
-     * @param Exception $e
-     * @param array     $options
-     *
-     * @return string | array
-     */
-    abstract public function format (Exception $e, array $options = []);
 }

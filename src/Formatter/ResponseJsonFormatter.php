@@ -2,13 +2,13 @@
 
 namespace Loguzz\Formatter;
 
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class ResponseJsonFormatter extends AbstractResponseFormatter
 {
-    public function format (ResponseInterface $response, array $options = []) {
-        $this->extractArguments($response, $options);
-
-        return json_encode($this->options);
+    public function format(RequestInterface $request, ResponseInterface $response, array $options = []): string
+    {
+        return json_encode($this->parseData($request, $response, $options));
     }
 }

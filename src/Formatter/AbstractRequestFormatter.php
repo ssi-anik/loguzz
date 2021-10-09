@@ -2,122 +2,83 @@
 
 namespace Loguzz\Formatter;
 
+use GuzzleHttp\Cookie\CookieJarInterface;
 use Psr\Http\Message\RequestInterface;
 
 abstract class AbstractRequestFormatter
 {
-    /**
-     * @var string[]
-     */
-    protected $options = [];
+    abstract public function format(RequestInterface $request, array $options = []);
 
-    /**
-     * @param RequestInterface $request
-     * @param array            $options
-     */
-    protected function extractArguments (RequestInterface $request, array $options) {
-        $this->extractHttpMethodArgument($request);
-        $this->extractBodyArgument($request);
-        $this->extractCookiesArgument($request, $options);
-        $this->extractHeadersArgument($request);
-        $this->extractUrlArgument($request);
+    protected function parseData(RequestInterface $request, array $options): array
+    {
+        return [
+            'method' => $this->getHttpMethod($request),
+            'body' => $this->getRequestBody($request),
+            'cookies' => $this->getCookie($request, $options),
+            'headers' => $this->getRequestHeaders($request),
+            'user-agent' => $this->getUserAgent($request),
+            'url' => $this->getUrl($request),
+        ];
     }
 
-    /**
-     * @param RequestInterface $request
-     */
-    private function extractHttpMethodArgument (RequestInterface $request) {
-        $this->options['method'] = $request->getMethod();
+    final protected function getHttpMethod(RequestInterface $request): string
+    {
+        return $request->getMethod();
     }
 
-    /**
-     * @param RequestInterface $request
-     */
-    private function extractBodyArgument (RequestInterface $request) {
-        $body = $request->getBody();
+    final protected function getRequestBody(RequestInterface $request): string
+    {
+        // Cloned so that accidentally the request body is not changed
+        $body = (clone $request)->getBody();
 
         if ($body->isSeekable()) {
-            $previousPosition = $body->tell();
             $body->rewind();
         }
 
         $contents = $body->getContents();
 
-        if ($body->isSeekable()) {
-            $body->seek($previousPosition);
-        }
-
         if ($contents) {
             // clean input of null bytes
             $contents = str_replace(chr(0), '', $contents);
-            $this->options['data'] = $contents;
         }
 
-        //if get request has data Add G otherwise curl will make a post request
-        if (!empty($this->options['data']) && ('GET' === $request->getMethod())) {
-            $this->options['method'] = 'GET';
-        }
+        return $contents;
     }
 
-    /**
-     * @param RequestInterface $request
-     * @param array            $options
-     */
-    private function extractCookiesArgument (RequestInterface $request, array $options) {
-        if (!isset($options['cookies']) || !$options['cookies'] instanceof CookieJarInterface) {
-            return;
-        }
+    final protected function getCookie(RequestInterface $request, array $options): array
+    {
+        $cookies = ($options['cookies'] ?? false) instanceof CookieJarInterface ? $options['cookies']->toArray() : [];
 
-        $values = [];
-        $scheme = $request->getUri()->getScheme();
-        $host = $request->getUri()->getHost();
-        $path = $request->getUri()->getPath();
-
-        /** @var SetCookie $cookie */
-        foreach ( $options['cookies'] as $cookie ) {
-            if ($cookie->matchesPath($path) && $cookie->matchesDomain($host) && !$cookie->isExpired() && (!$cookie->getSecure() || $scheme == 'https')) {
-
-                $values[] = $cookie->getName() . '=' . $cookie->getValue();
-            }
-        }
-
-        if ($values) {
-            $this->options['cookies'] = $values;
-        }
+        return cookie_formatter($cookies);
     }
 
-    /**
-     * @param RequestInterface $request
-     */
-    private function extractHeadersArgument (RequestInterface $request) {
-        foreach ( $request->getHeaders() as $name => $header ) {
+    final protected function getRequestHeaders(RequestInterface $request): array
+    {
+        $headers = [];
+        foreach ($request->getHeaders() as $name => $header) {
             if ('host' === strtolower($name) && $header[0] === $request->getUri()->getHost()) {
                 continue;
             }
 
-            if ('user-agent' === strtolower($name)) {
-                $this->options['user-agent'] = $header[0];
+            if (in_array(strtolower($name), ['cookie', 'user-agent'])) {
                 continue;
             }
 
-            foreach ( (array) $header as $headerValue ) {
-                $this->options['headers'][$name] = $headerValue;
+            foreach ((array)$header as $headerValue) {
+                $headers[$name][] = $headerValue;
             }
         }
+
+        return $headers;
     }
 
-    /**
-     * @param RequestInterface $request
-     */
-    private function extractUrlArgument (RequestInterface $request) {
-        $this->options['url'] = (string) $request->getUri()->withFragment('');
+    final protected function getUrl(RequestInterface $request): string
+    {
+        return (string)$request->getUri()->withFragment('');
     }
 
-    /**
-     * @param RequestInterface $request
-     * @param array            $options
-     *
-     * @return string | array
-     */
-    abstract public function format (RequestInterface $request, array $options = []);
+    final protected function getUserAgent(RequestInterface $request): string
+    {
+        return $request->getHeader('user-agent')[0] ?? '';
+    }
 }
