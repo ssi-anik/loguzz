@@ -4,10 +4,11 @@ namespace Loguzz\Test\Formatter\Exception;
 
 use Exception;
 use GuzzleHttp\Exception\ConnectException;
+use Loguzz\Formatter\AbstractExceptionFormatter;
 use Loguzz\Formatter\ExceptionArrayFormatter;
 use Loguzz\Test\FormatterTestCase;
 
-class ResponseExceptionFormatterTest extends FormatterTestCase
+class ResponseExceptionArrayFormatterTest extends FormatterTestCase
 {
     /**
      * @var \Loguzz\Formatter\AbstractResponseFormatter
@@ -31,7 +32,7 @@ class ResponseExceptionFormatterTest extends FormatterTestCase
         $this->assertArrayHasKey("message", $format);
     }
 
-    protected function getFormatter(): ExceptionArrayFormatter
+    protected function getFormatter(): AbstractExceptionFormatter
     {
         return new ExceptionArrayFormatter();
     }
