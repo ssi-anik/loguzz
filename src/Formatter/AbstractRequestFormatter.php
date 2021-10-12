@@ -32,11 +32,16 @@ abstract class AbstractRequestFormatter
         $body = (clone $request)->getBody();
 
         if ($body->isSeekable()) {
+            $previousPosition = $body->tell();
             $body->rewind();
         }
 
         $contents = $body->getContents();
 
+        if ($body->isSeekable()) {
+            $body->seek($previousPosition);
+        }
+        
         if ($contents) {
             // clean input of null bytes
             $contents = str_replace(chr(0), '', $contents);
