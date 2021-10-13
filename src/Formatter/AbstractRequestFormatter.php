@@ -41,7 +41,7 @@ abstract class AbstractRequestFormatter
         if ($body->isSeekable()) {
             $body->seek($previousPosition);
         }
-        
+
         if ($contents) {
             // clean input of null bytes
             $contents = str_replace(chr(0), '', $contents);
