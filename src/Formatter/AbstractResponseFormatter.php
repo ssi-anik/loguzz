@@ -75,9 +75,16 @@ abstract class AbstractResponseFormatter
         }
 
         if ($body->isSeekable()) {
+            $previousPosition = $body->tell();
             $body->rewind();
         }
 
-        return $body->getContents();
+        $content = $body->getContents();
+
+        if ($body->isSeekable()) {
+            $body->seek($previousPosition);
+        }
+
+        return $content;
     }
 }
