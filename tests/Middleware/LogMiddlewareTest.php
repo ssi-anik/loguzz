@@ -19,7 +19,7 @@ class LogMiddlewareTest extends MiddlewareTestCase
         $client->send($dto->request);
 
         foreach ($logger->records as $record) {
-            $this->assertEquals(LogLevel::DEBUG, $record['level']);
+            $this->assertSame(LogLevel::DEBUG, $record['level']);
         }
     }
 
@@ -28,7 +28,7 @@ class LogMiddlewareTest extends MiddlewareTestCase
         $dto = $this->objectFactory(['log_level' => 'info',]);
 
         $dto->client->send($dto->request);
-        $this->assertEquals(LogLevel::INFO, $dto->logger->records[0]['level']);
+        $this->assertSame(LogLevel::INFO, $dto->logger->records[0]['level']);
     }
 
     public function testUserCanDisableAllTypesOfLogging()

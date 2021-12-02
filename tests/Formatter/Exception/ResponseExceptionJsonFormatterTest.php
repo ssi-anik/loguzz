@@ -9,7 +9,7 @@ use Psr\Http\Message\RequestInterface;
 
 class ResponseExceptionJsonFormatterTest extends ResponseExceptionArrayFormatterTest
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 

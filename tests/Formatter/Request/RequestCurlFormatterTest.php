@@ -47,7 +47,7 @@ class RequestCurlFormatterTest extends RequestFormatterTest
     {
         $expected = sprintf("curl --url 'http://example.local?foo=bar' -A '%s'", self::USER_AGENT);
 
-        $this->assertEquals($expected, $response);
+        $this->assertSame($expected, $response);
     }
 
     public function implementAssertionForGetRequestWithRequestBody($response)
@@ -110,7 +110,7 @@ class RequestCurlFormatterTest extends RequestFormatterTest
         $this->formatter->setCommandLineLength(10);
         $response = $this->formatter->format($this->createRequest('get', '/', '', ['foo' => 'bar']));
 
-        $this->assertEquals(3, substr_count($response, "\n"));
+        $this->assertSame(3, substr_count($response, "\n"));
     }
 
     public function testMinimumLineLength()
@@ -121,7 +121,7 @@ class RequestCurlFormatterTest extends RequestFormatterTest
             $this->createRequest('get', '/', '', ['user-agent' => '', 'foo' => 'bar'])
         );
 
-        $this->assertEquals(0, substr_count($response, "\n"));
+        $this->assertSame(0, substr_count($response, "\n"));
     }
 
     public function testDoesNotIncludeEmptyValue()
@@ -132,7 +132,7 @@ class RequestCurlFormatterTest extends RequestFormatterTest
             $this->createRequest('get', '/', '', ['user-agent' => '', 'foo' => 'bar'])
         );
 
-        $this->assertEquals(2, substr_count($response, "\n"));
+        $this->assertSame(2, substr_count($response, "\n"));
     }
 
     public function testBasicCurlRequest()
@@ -140,6 +140,6 @@ class RequestCurlFormatterTest extends RequestFormatterTest
         $response = $this->formatter->format($this->createRequest('get', 'http://example.local'));
         $expected = sprintf("curl --url 'http://example.local' -A '%s'", self::USER_AGENT);
 
-        $this->assertEquals($expected, $response);
+        $this->assertSame($expected, $response);
     }
 }

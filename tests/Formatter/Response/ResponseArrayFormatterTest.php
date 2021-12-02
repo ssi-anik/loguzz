@@ -111,7 +111,7 @@ class ResponseArrayFormatterTest extends FormatterTestCase
 
         $format = $this->formatter->format($request, $response);
 
-        $this->assertEquals(['foo'], $format['headers']['x-foo']);
+        $this->assertSame(['foo'], $format['headers']['x-foo']);
     }
 
     public function testExcludesFewHeaders()
