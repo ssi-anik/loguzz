@@ -12,6 +12,7 @@
     "require": {
         "php": ">=7.1",
         "guzzlehttp/guzzle": "^6.2|^7.1",
+        "guzzlehttp/promises": "^1.5",
         "psr/log": "^1.0"
     },
     "require-dev": {
