@@ -2,4 +2,5 @@ vendor/
 .idea/
 composer.lock
 .phpunit.result.cache
-coverage/
+coverage*/
+.phpunit.cache*
