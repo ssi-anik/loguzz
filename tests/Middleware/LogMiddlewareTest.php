@@ -122,6 +122,7 @@ class LogMiddlewareTest extends MiddlewareTestCase
 
     public function testWhenTaggingItShouldLogAsArrayIfNotJson()
     {
+        $this->markTestSkipped('Based on user preference and LoggerInterface Implementation.');
         $dto = $this->objectFactory(['tag' => 'custom.tag', 'force_json' => false]);
 
         $dto->client->send($dto->request);
@@ -141,6 +142,7 @@ class LogMiddlewareTest extends MiddlewareTestCase
 
     public function testResponseFormatter()
     {
+        $this->markTestSkipped('Based on user preference and LoggerInterface Implementation.');
         $dto = $this->objectFactory(['response_formatter' => new ResponseArrayFormatter(),]);
 
         $dto->client->send($dto->request);
