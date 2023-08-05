@@ -20,7 +20,7 @@ Find the thorough [documentation here](https://bit.ly/3dwgYB1).
 To log a request, you'll need to push `Loguzz\Middleware\LogMiddleware` to Guzzle's handler.
 
 ```php
-$logger = new \Psr\Log\Test\TestLogger();
+$logger = new \ColinODell\PsrTestLogger\TestLogger();
 $handlerStack = \GuzzleHttp\HandlerStack::create();
 $options = [];
 $handlerStack->push(new \Loguzz\Middleware\LogMiddleware($logger, $options), 'logger');
