@@ -2,9 +2,9 @@
 
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestArrayFormatter;
-use Loguzz\Test\Formatter\Request\RequestFormatterTest;
+use Loguzz\Test\Formatter\Request\RequestFormatterTestCase;
 
-class RequestArrayFormatterTest extends RequestFormatterTest
+class RequestArrayFormatterTest extends RequestFormatterTestCase
 {
     public function implementAssertionForUserAgent($response)
     {

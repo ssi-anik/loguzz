@@ -2,9 +2,9 @@
 
 use Loguzz\Formatter\AbstractRequestFormatter;
 use Loguzz\Formatter\RequestCurlFormatter;
-use Loguzz\Test\Formatter\Request\RequestFormatterTest;
+use Loguzz\Test\Formatter\Request\RequestFormatterTestCase;
 
-class RequestCurlFormatterTest extends RequestFormatterTest
+class RequestCurlFormatterTest extends RequestFormatterTestCase
 {
     /**
      * @var RequestCurlFormatter

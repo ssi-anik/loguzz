@@ -5,7 +5,7 @@ namespace Loguzz\Test\Formatter\Request;
 use GuzzleHttp\Cookie\CookieJar;
 use Loguzz\Test\FormatterTestCase;
 
-abstract class RequestFormatterTest extends FormatterTestCase
+abstract class RequestFormatterTestCase extends FormatterTestCase
 {
     abstract public function implementAssertionForUserAgent($response);
 

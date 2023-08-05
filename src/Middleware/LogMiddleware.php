@@ -17,8 +17,8 @@ use Psr\Log\LoggerInterface;
 
 class LogMiddleware
 {
-    protected $logger;
-    protected $options;
+    protected LoggerInterface $logger;
+    protected array $options;
 
     public function __construct(LoggerInterface $logger, array $options = [])
     {
@@ -45,92 +45,9 @@ class LogMiddleware
         };
     }
 
-    private function logExceptionOnly(): bool
-    {
-        return isset($this->options['exceptions_only']) ? (bool)$this->options['exceptions_only'] : false;
-    }
-
-    private function logSuccessOnly(): bool
-    {
-        return isset($this->options['success_only']) ? (bool)$this->options['success_only'] : false;
-    }
-
     private function logRequest(): bool
     {
-        return isset($this->options['log_request']) ? (bool)$this->options['log_request'] : true;
-    }
-
-    private function getDefaultRequestFormatter(): AbstractRequestFormatter
-    {
-        $length = isset($this->options['length']) ? $this->options['length'] : 100;
-        $length = $length < 10 ? 100 : $length;
-
-        return new RequestCurlFormatter($length);
-    }
-
-    private function getRequestFormatter(): AbstractRequestFormatter
-    {
-        $formatter = null;
-        if (isset($this->options['request_formatter'])) {
-            $formatter = $this->options['request_formatter'];
-        }
-
-        return $formatter instanceof AbstractRequestFormatter ? $formatter : $this->getDefaultRequestFormatter();
-    }
-
-    private function logResponse(): bool
-    {
-        return isset($this->options['log_response']) ? (bool)$this->options['log_response'] : true;
-    }
-
-    private function getDefaultResponseFormatter(): ResponseJsonFormatter
-    {
-        return new ResponseJsonFormatter();
-    }
-
-    private function getResponseFormatter(): AbstractResponseFormatter
-    {
-        $formatter = null;
-        if (isset($this->options['response_formatter'])) {
-            $formatter = $this->options['response_formatter'];
-        }
-
-        return $formatter instanceof AbstractResponseFormatter ? $formatter : $this->getDefaultResponseFormatter();
-    }
-
-    private function getDefaultExceptionFormatter(): ExceptionJsonFormatter
-    {
-        return new ExceptionJsonFormatter();
-    }
-
-    private function getExceptionFormatter(): AbstractExceptionFormatter
-    {
-        $formatter = null;
-        if (isset($this->options['exception_formatter'])) {
-            $formatter = $this->options['exception_formatter'];
-        }
-
-        return $formatter instanceof AbstractExceptionFormatter ? $formatter : $this->getDefaultExceptionFormatter();
-    }
-
-    private function getLogLevel(): string
-    {
-        return isset($this->options['log_level']) ? $this->options['log_level'] : 'debug';
-    }
-
-    private function getLogTag(): string
-    {
-        return isset($this->options['tag']) ? $this->options['tag'] : '';
-    }
-
-    private function forceToJson(): bool
-    {
-        return isset($this->options['force_json']) ? (bool)$this->options['force_json'] : true;
-    }
-
-    private function shouldSeparate(): bool
-    {
-        return isset($this->options['separate']) ? (bool)$this->options['separate'] : false;
+        return (bool)($this->options['log_request'] ?? true);
     }
 
     private function formatWithTag($loggable, $type)
@@ -144,6 +61,46 @@ class LogMiddleware
         }
 
         return $loggable;
+    }
+
+    private function getLogTag(): string
+    {
+        return $this->options['tag'] ?? '';
+    }
+
+    private function shouldSeparate(): bool
+    {
+        return (bool)($this->options['separate'] ?? false);
+    }
+
+    private function forceToJson(): bool
+    {
+        return (bool)($this->options['force_json'] ?? true);
+    }
+
+    private function getRequestFormatter(): AbstractRequestFormatter
+    {
+        $formatter = $this->options['request_formatter'] ?? null;
+
+        return $formatter instanceof AbstractRequestFormatter ? $formatter : $this->getDefaultRequestFormatter();
+    }
+
+    private function getDefaultRequestFormatter(): AbstractRequestFormatter
+    {
+        $length = (int)($this->options['length'] ?? 100);
+        $length = $length < 10 ? 100 : $length;
+
+        return new RequestCurlFormatter($length);
+    }
+
+    private function getLogLevel(): string
+    {
+        return $this->options['log_level'] ?? 'debug';
+    }
+
+    private function logResponse(): bool
+    {
+        return (bool)($this->options['log_response'] ?? true);
     }
 
     /**
@@ -169,6 +126,23 @@ class LogMiddleware
         };
     }
 
+    private function logExceptionOnly(): bool
+    {
+        return (bool)($this->options['exceptions_only'] ?? false);
+    }
+
+    private function getResponseFormatter(): AbstractResponseFormatter
+    {
+        $formatter = $this->options['response_formatter'] ?? null;
+
+        return $formatter instanceof AbstractResponseFormatter ? $formatter : $this->getDefaultResponseFormatter();
+    }
+
+    private function getDefaultResponseFormatter(): ResponseJsonFormatter
+    {
+        return new ResponseJsonFormatter();
+    }
+
     /**
      * Returns a function which is handled when a request was rejected.
      *
@@ -190,5 +164,22 @@ class LogMiddleware
 
             return Create::rejectionFor($reason);
         };
+    }
+
+    private function logSuccessOnly(): bool
+    {
+        return (bool)($this->options['success_only'] ?? false);
+    }
+
+    private function getExceptionFormatter(): AbstractExceptionFormatter
+    {
+        $formatter = $this->options['exception_formatter'] ?? null;
+
+        return $formatter instanceof AbstractExceptionFormatter ? $formatter : $this->getDefaultExceptionFormatter();
+    }
+
+    private function getDefaultExceptionFormatter(): ExceptionJsonFormatter
+    {
+        return new ExceptionJsonFormatter();
     }
 }
