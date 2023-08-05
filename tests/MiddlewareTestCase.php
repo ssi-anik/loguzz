@@ -2,9 +2,9 @@
 
 namespace Loguzz\Test;
 
+use ColinODell\PsrTestLogger\TestLogger;
 use Loguzz\Middleware\LogMiddleware;
 use Psr\Log\LoggerInterface;
-use Psr\Log\Test\TestLogger;
 
 class ObjectFactory
 {
