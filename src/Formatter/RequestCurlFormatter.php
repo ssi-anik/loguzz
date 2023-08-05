@@ -6,27 +6,18 @@ use Psr\Http\Message\RequestInterface;
 
 class RequestCurlFormatter extends AbstractRequestFormatter
 {
-    /**
-     * @var string
-     */
-    protected $command;
+    protected string $command;
 
-    /**
-     * @var int
-     */
-    protected $currentLineLength;
+    protected int $currentLineLength;
 
     /**
      * @var string[]
      */
-    protected $options;
+    protected array $options;
 
-    /**
-     * @var int
-     */
-    protected $commandLineLength;
+    protected int $commandLineLength;
 
-    public function __construct($commandLineLength = 100)
+    public function __construct(int $commandLineLength = 100)
     {
         $this->commandLineLength = $commandLineLength;
     }
