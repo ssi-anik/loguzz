@@ -15,7 +15,7 @@ You'll need composer to install the package.
 
 Find the thorough [documentation here](https://bit.ly/3dwgYB1).
 
-## Documentation V2
+## Documentation V3/V2
 
 To log a request, you'll need to push `Loguzz\Middleware\LogMiddleware` to Guzzle's handler.
 
