@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="tests/bootstrap.php" colors="true">
-    <testsuites>
-        <testsuite name="request">
-            <directory>tests/Formatter/Request</directory>
-        </testsuite>
-        <testsuite name="response">
-            <directory>tests/Formatter/Response</directory>
-        </testsuite>
-        <testsuite name="exception">
-            <directory>tests/Formatter/Exception</directory>
-        </testsuite>
-        <testsuite name="middleware">
-            <directory>tests/Middleware</directory>
-        </testsuite>
-    </testsuites>
-    <filter>
-        <whitelist>
-            <directory suffix=".php">src</directory>
-        </whitelist>
-    </filter>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="tests/bootstrap.php" colors="true" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd" cacheDirectory=".phpunit.cache">
+  <coverage/>
+  <testsuites>
+    <testsuite name="request">
+      <directory>tests/Formatter/Request</directory>
+    </testsuite>
+    <testsuite name="response">
+      <directory>tests/Formatter/Response</directory>
+    </testsuite>
+    <testsuite name="exception">
+      <directory>tests/Formatter/Exception</directory>
+    </testsuite>
+    <testsuite name="middleware">
+      <directory>tests/Middleware</directory>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+  </source>
 </phpunit>
