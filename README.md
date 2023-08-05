@@ -70,8 +70,12 @@ $options = [
     * `\Loguzz\Formatter\ExceptionJsonFormatter`
 - `tag` - **string**. **Empty** by default. When non-empty string, it'll log the formatted data under this tag. Tag can
   be used to search for specific type of request/response in your log file or your storage.
-- `force_json` - **bool**. It is only applicable when **tag** is non-empty string. If enabled, it will then log data as
-  json string, otherwise it'll log as an array.
+- `force_json` - **bool**. **true** by default. It is only applicable when **tag** is non-empty string. If enabled, it
+  will then log data as
+  json string, otherwise it'll log as an array. **If set to** `false`, **the code may break due to the type-hint in
+  psr/log interface. If
+  your [logger interface supports array](https://github.com/laravel/framework/blob/dd5c5178274e64d0384dc30bf2c8139b00dba098/src/Illuminate/Log/Logger.php#L260),
+  it will work.**
 - `separate` - **bool**. It is only applicable when **tag** is non-empty string. If enabled, it will then log data
   in `{tag}.request`, `{tag}.success`, `{tag}.failure` for request logging, successful response and error response.
 
