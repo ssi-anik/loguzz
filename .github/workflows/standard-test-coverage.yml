@@ -35,7 +35,6 @@ jobs:
       matrix:
         php: [ 8.0, 8.1, 8.2 ]
         guzzle: [ ^6, ^7 ]
-        promises: [ ^2 ]
 
     steps:
       - name: Checkout code
@@ -48,7 +47,7 @@ jobs:
           extensions: json,curl
 
       - name: Install dependencies
-        run: composer require guzzlehttp/guzzle:${{ matrix.guzzle }} guzzlehttp/promises:${{ matrix.promises }} --no-interaction --prefer-dist
+        run: composer require guzzlehttp/guzzle:${{ matrix.guzzle }} --no-interaction --prefer-dist
 
       - name: Run test suite
         run: ./vendor/bin/phpunit --testdox
