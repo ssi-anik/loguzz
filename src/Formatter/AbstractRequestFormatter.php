@@ -28,23 +28,23 @@ abstract class AbstractRequestFormatter
 
     final protected function getRequestBody(RequestInterface $request): string
     {
-        // Cloned so that accidentally the request body is not changed
-        $body = (clone $request)->getBody();
-
-        if ($body->isSeekable()) {
+        // escapeshellarg argument max length on Windows, but longer body in curl command would be impractical anyways
+        $body = $request->getBody();
+        if ($body->getSize() > 8192) {
+            $contents = '[too long stream omitted]';
+        } elseif ($body->isSeekable()) {
             $previousPosition = $body->tell();
             $body->rewind();
-        }
-
-        $contents = $body->getContents();
-
-        if ($body->isSeekable()) {
+            $contents = $body->getContents();
             $body->seek($previousPosition);
-        }
-
-        if ($contents) {
-            // clean input of null bytes
-            $contents = str_replace(chr(0), '', $contents);
+            if (preg_match('/[\x00-\x1F\x7F]/', $data)) {
+                $contents = '[binary stream omitted]';
+            } else {
+                // clean input of null bytes
+                $contents = str_replace(chr(0), '', $contents);
+            }
+        } else {
+            $contents = '[non-seekable stream omitted]';
         }
 
         return $contents;
