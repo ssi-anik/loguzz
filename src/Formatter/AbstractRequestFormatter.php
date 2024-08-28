@@ -34,19 +34,19 @@ abstract class AbstractRequestFormatter
         if ($body->getSize() > 8192) {
             return '[too long stream omitted]';
         }
-        
+
         if ($body->isSeekable()) {
             $previousPosition = $body->tell();
             $body->rewind();
             $contents = $body->getContents();
             $body->seek($previousPosition);
-            
+
             if (preg_match('/[\x00-\x1F\x7F]/', $contents)) {
                 return '[binary stream omitted]';
             }
-            
+
             // clean input of null bytes
-            return str_replace(chr(0), '', $contents);
+            return str_replace(chr(0), '', $contents ?: '');
         }
 
         return '[non-seekable stream omitted]';
