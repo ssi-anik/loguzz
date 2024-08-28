@@ -29,25 +29,27 @@ abstract class AbstractRequestFormatter
     final protected function getRequestBody(RequestInterface $request): string
     {
         // Cloned so that accidentally the request body is not changed
+        // escapeshellarg argument max length on Windows, but longer body in curl command would be impractical anyways
         $body = (clone $request)->getBody();
+        if ($body->getSize() > 8192) {
+            return '[too long stream omitted]';
+        }
 
         if ($body->isSeekable()) {
             $previousPosition = $body->tell();
             $body->rewind();
-        }
-
-        $contents = $body->getContents();
-
-        if ($body->isSeekable()) {
+            $contents = $body->getContents();
             $body->seek($previousPosition);
-        }
 
-        if ($contents) {
+            if (preg_match('/[\x00-\x1F\x7F]/', $contents)) {
+                return '[binary stream omitted]';
+            }
+
             // clean input of null bytes
-            $contents = str_replace(chr(0), '', $contents);
+            return str_replace(chr(0), '', $contents ?: '');
         }
 
-        return $contents;
+        return '[non-seekable stream omitted]';
     }
 
     final protected function getCookie(RequestInterface $request, array $options): array
